@@ -51,7 +51,7 @@ class MONSTER:
 class MAP:
     tiles = numpy.zeros((1000,1000))
     memory = numpy.zeros((1000,1000))
-    floor = 1
+    floor = 0
     player = PLAYER
     items = numpy.array([POS() for _ in range(floor)])
     monsters = numpy.array([MONSTER() for _ in range(floor*2)])
@@ -62,30 +62,101 @@ class GAME:
     map = MAP
     menu = MENU
     play = False
-    next = False
+    next = True
+#----------------------------------------------------------------------------------------------------------------------------------------
+def move_player(game = GAME):
+    if(keyboard.is_pressed=="w"):
+        game.map.player.pos.y-=1
+    if(keyboard.is_pressed=="s"):
+        game.map.player.pos.y+=1
+    if(keyboard.is_pressed=="a"):
+        game.map.player.pos.x-=1
+    if(keyboard.is_pressed=="d"):
+        game.map.player.pos.x+=1
+#----------------------------------------------------------------------------------------------------------------------------------------
+def simulate_vision(game = GAME(),y=0,x=0,i=0):
+    if(i>=1):
+        if(random.random<0.5):
+            if(y<0):
+                y-=1
+            else:
+                y+=1
+        if(random.random<0.5):
+            if(x<0):
+                x-=1
+            else:
+                x+=1
+    if(game.map.tiles[game.map.player.pos.y+y][game.map.player.pos.x+x]!=0):
+        i+=1
+        game.map.memory[game.map.player.pos.y+y][game.map.player.pos.x+x] = 1
+        if(i<game.map.player.attributes.intelligence):
+            simulate_vision(game,y,x,i)
+    game.map.memory[game.map.player.pos.y+y][game.map.player.pos.x+x] = 1
+    return 0
+#----------------------------------------------------------------------------------------------------------------------------------------
+def render_game(game = GAME):
+    if(game.map.player.attributes.hp<0):
+        game.map.player.attributes.hp = 0
+    for y in range(-1,2,1):
+        for x in range(-1,2,1):
+            simulate_vision(game,y,x)
+    for y in range(-10,10,1):
+        for x in range(-10,10,1):
+            if(game.map.tiles[game.map.player.pos.y+y][game.map.player.pos.x+x]==0):
+                pygame.draw.rect(screen,"#545454",((x*50)+500,(y*50)+500,50,50))
+            if(game.map.tiles[game.map.player.pos.y+y][game.map.player.pos.x+x]==1):
+                pygame.draw.rect(screen,"#a2a2a2",((x*50)+500,(y*50)+500,50,50))
+            if(game.map.tiles[game.map.player.pos.y+y][game.map.player.pos.x+x]==2):
+                pygame.draw.rect(screen,"#ffffff",((x*50)+500,(y*50)+500,50,50))
+            if(y==0 and x==0):
+                pygame.draw.circle(screen,"#ffffff",[525,525],20)
 #----------------------------------------------------------------------------------------------------------------------------------------
 def create_map(game = GAME):
-    if game.next:
+    if(game.next):
         game.map.player.firstAtt = True
         game.map.player.attPoints += 1
     game.next = False
     game.map.player.key = False
     game.map.player.pos.y = 500
     game.map.player.pos.x = 500
-    for y in range(1000):
-        for x in range(1000):
-            if y==0 or x==0 or y==999 or x==999:
-                game.map.tiles[y,x] = 2
     mapY = game.map.player.pos.y
     mapX = game.map.player.pos.x
     i = 0
-    while True:
-        tamY = random.randint(2,5)
-        tamX = random.randint(2,5)
-        if game.map.floor==6:
-            tamY = 25
-            tamX = 25
-    
+    while(True):
+        tamY = random.randint((game.map.floor+2),(game.map.floor+2)*2)
+        tamX = random.randint((game.map.floor+2),(game.map.floor+2)*2)
+        for y in range(0-tamY,tamY,1):
+            for x in range(0-tamX,tamX,1):
+                if(mapY+y>=0 and mapY+y<999 and mapX+x>=0 and mapX+x<999):
+                    if(y==-tamY or y==tamY-1 or x==-tamX or x==tamX-1):
+                        game.map.tiles[mapY+y][mapX+x] = 1 # FREEBLOCK
+        if(i>=game.map.floor*2):
+            if(random.random()<=0.5):
+                game.map.tiles[mapY][mapX] = 2 # STAIR
+                break
+        direction = random.randint(0,3)
+        while(True):
+            if(direction==0):
+                mapY-=1
+            if(direction==1):
+                mapY+=1
+            if(direction==2):
+                mapX-=1
+            if(direction==3):
+                mapX+=1
+            if(mapY>=1 and mapY<999 and mapX>=1 and mapX<999):
+                game.map.tiles[mapY][mapX] = 1
+            else:
+                direction = random.randint(0,3)
+            if(random.random()<=0.25):
+                direction = direction = random.randint(0,3)
+            if(random.random()<=0.01):
+                break
+        if(i>=game.map.floor*2):
+            if(random.random()<=0.5):
+                game.map.tiles[mapY][mapX] = 2
+                break
+        i+=1
 #----------------------------------------------------------------------------------------------------------------------------------------
 def menu(game = GAME):
     global running
@@ -115,9 +186,11 @@ def menu(game = GAME):
 #----------------------------------------------------------------------------------------------------------------------------------------
 def play(game = GAME):
     screen.fill("black")
-    for x in range(0,1000,100):
-        for y in range(0,1000,100):
-            pygame.draw.rect(screen,"red",(x,y,100,100))
+    if(game.next):
+        create_map(game)
+        game.next = False
+    render_game(game)
+    move_player(game)
 
 #----------------------------------------------------------------------------------------------------------------------------------------
 pygame.init()
