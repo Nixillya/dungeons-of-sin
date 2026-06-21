@@ -10,12 +10,13 @@ class POS:
         self.x = -1
         self.y = -1
 class ATTRIBUTES:
-    hp = 1
-    hpMax = 1
-    defense = 1
-    strenght = 1
-    dexterity = 1
-    intelligence = 1
+    def __init__(self):
+        self.hp = 1
+        self.hpMax = 1
+        self.defense = 1
+        self.strenght = 1
+        self.dexterity = 1
+        self.intelligence = 1
 class ITEM:
     id = 0
     heal = 0
@@ -77,7 +78,9 @@ def move_monsters(game = GAME()):
         if(monster.attributes.hp<1):
             monster.pos.y = -1
             monster.pos.x = -1
-            monster.alive = False
+            if(monster.alive):
+                game.map.player.exp+=random.randint(1,game.map.floor)
+                monster.alive = False
         if(monster.alive):
             if(time.perf_counter()-monster.clockSpeed>1/monster.attributes.dexterity):
                 monster.clockSpeed = time.perf_counter()
@@ -139,6 +142,11 @@ def move_player(game = GAME()):
         if(clock):
             game.map.player.clockSpeed = time.perf_counter()
         if((target.y!=0 and target.x==0) or (target.y==0 and target.x!=0)):
+            if(game.map.player.exp>=game.map.player.nextExp):
+                game.map.player.attPoints+=1
+                game.map.player.level+=1
+                game.map.player.exp = 0
+                game.map.player.nextExp+=random.randint(1,game.map.floor)
             game.map.player.pos.y+=target.y
             game.map.player.pos.x+=target.x
             if(game.map.tiles[game.map.player.pos.y][game.map.player.pos.x] in forbiddenBlcoks):
@@ -209,7 +217,7 @@ def render_game(game = GAME()):
     for damageObject in game.map.damagesView:
         if(damageObject.size>0):
             font = pygame.font.SysFont('Comic Sans MS', damageObject.size)
-            damage_text = font.render(f"{damageObject.value}", True, "#ff0000")
+            damage_text = font.render(f"{damageObject.value}", True, "#ffffff")
             screen.blit(damage_text, (damageObject.pos.x+random.randint(-1,1),damageObject.pos.y+random.randint(-1,1)))
             if(random.random()<0.25):
                 damageObject.size-=1
@@ -226,8 +234,14 @@ def render_game(game = GAME()):
     pygame.draw.rect(screen,"#364935",(790,10,200,20))
     pygame.draw.rect(screen,"#08fe00",(790,10,hpBar,20))
 
+    expBar = (game.map.player.exp/game.map.player.nextExp)*200
+    pygame.draw.rect(screen,"#464935",(790,35,200,20))
+    pygame.draw.rect(screen,"#e0fe00",(790,35,expBar,20))
+
     hpValue_text = font.render(f'{game.map.player.attributes.hp} / {game.map.player.attributes.hpMax}', True, "#000000")
+    expValue_text = font.render(f'{game.map.player.exp} / {game.map.player.nextExp}', True, "#000000")
     screen.blit(hpValue_text, (890-hpValue_text.get_size()[0]/2,19-hpValue_text.get_size()[1]/2))
+    screen.blit(expValue_text, (890-expValue_text.get_size()[0]/2,44-expValue_text.get_size()[1]/2))
 #----------------------------------------------------------------------------------------------------------------------------------------
 def put_attributes(game = GAME()):
     global running
@@ -258,9 +272,9 @@ def put_attributes(game = GAME()):
         else:
             intelligence_text = font.render(f'INTELLIGENCE: {game.map.player.attributes.intelligence}', True, (255, 255, 255))
         if(game.attSelection==4):
-            dexterity_text = font.render(f'> DEXTERY: {game.map.player.attributes.dexterity}', True, (255, 245, 150))
+            dexterity_text = font.render(f'> DEXTERITY: {game.map.player.attributes.dexterity}', True, (255, 245, 150))
         else:
-            dexterity_text = font.render(f'DEXTERY: {game.map.player.attributes.dexterity}', True, (255, 255, 255))
+            dexterity_text = font.render(f'DEXTERITY: {game.map.player.attributes.dexterity}', True, (255, 255, 255))
         if(game.attSelection==5):
             continue_text = font.render(f'> CONTINUE', True, (255, 245, 150))
         else:
@@ -274,7 +288,7 @@ def put_attributes(game = GAME()):
         screen.blit(dexterity_text, (500-dexterity_text.get_size()[0]/2+random.randint(-1,1),650-dexterity_text.get_size()[1]/2+random.randint(-1,1)))
         screen.blit(continue_text, (500-continue_text.get_size()[0]/2+random.randint(-1,1),900-continue_text.get_size()[1]/2+random.randint(-1,1)))
 
-        if(time.perf_counter()-game.map.player.clockSpeed>0.3):
+        if(time.perf_counter()-game.map.player.clockSpeed>0.2):
             if(keyboard.is_pressed('w')):
                 game.map.player.clockSpeed = time.perf_counter()
                 if(game.attSelection>0):
@@ -287,17 +301,23 @@ def put_attributes(game = GAME()):
                 game.map.player.clockSpeed = time.perf_counter()
                 if(game.map.player.attPoints>0):
                     if(game.attSelection==0):
+                        game.map.player.attPoints-=1
                         game.map.player.attributes.hpMax+=1
                         game.map.player.attributes.hp+=1
                     if(game.attSelection==1):
+                        game.map.player.attPoints-=1
                         game.map.player.attributes.defense+=1
                     if(game.attSelection==2):
+                        game.map.player.attPoints-=1
                         game.map.player.attributes.strenght+=1
                     if(game.attSelection==3):
-                        game.map.player.attributes.intelligence+=1
+                        if(game.map.player.attPoints>=game.map.player.attributes.intelligence):
+                            game.map.player.attPoints-=(game.map.player.attributes.intelligence)
+                            game.map.player.attributes.intelligence+=1
                     if(game.attSelection==4):
-                        game.map.player.attributes.dexterity+=1
-                    game.map.player.attPoints-=1
+                        if(game.map.player.attPoints>=game.map.player.attributes.dexterity):
+                            game.map.player.attPoints-=(game.map.player.attributes.dexterity)
+                            game.map.player.attributes.dexterity+=1
                 if(game.attSelection==5):
                     break
                 
@@ -364,7 +384,7 @@ def create_map(game = GAME()):
         game.map.player.pos.x = random.randint(0,999)
         if(game.map.tiles[game.map.player.pos.y][game.map.player.pos.x]==1):
             break
-    game.map.monsters = numpy.array([MONSTER() for _ in range(floor)])
+    game.map.monsters = numpy.array([MONSTER() for _ in range(floor*2)])
     for monster in game.map.monsters:
         monster.pos.y = -1
         monster.pos.x = -1
@@ -374,10 +394,31 @@ def create_map(game = GAME()):
             monster.pos.y = random.randint(0,999)
             monster.pos.x = random.randint(0,999)
             monster.alive = True
+            attPoints = game.map.player.level+game.map.floor
+            while(attPoints>0):
+                attribute = random.randint(0,4)
+                if(attribute==0):
+                    attPoints-=1
+                    monster.attributes.hpMax+=1
+                if(attribute==1):
+                    attPoints-=1
+                    monster.attributes.defense+=1
+                if(attribute==2):
+                    attPoints-=1
+                    monster.attributes.strenght+=1
+                if(attribute==3):
+                    if(attPoints>=monster.attributes.intelligence):
+                        attPoints-=monster.attributes.intelligence
+                        monster.attributes.intelligence+=1
+                if(attribute==4):
+                    if(attPoints>=monster.attributes.dexterity):
+                        attPoints-=monster.attributes.dexterity
+                        monster.attributes.dexterity+=1
             if(key==False):
                 monster.key = True
                 key = True
             if(game.map.tiles[monster.pos.y][monster.pos.x]==1):
+                monster.attributes.hp = monster.attributes.hpMax
                 if(game.map.player.pos.y!=monster.pos.y and game.map.player.pos.x!=monster.pos.x):
                     break
     for item in game.map.items:
