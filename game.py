@@ -29,7 +29,7 @@ class ITEM:
         self.cursed = False
 class PLAYER:
     def __init__(self):
-        self.attPoints = 0
+        self.attPoints = 1
         self.level = 1
         self.gold = 0
         self.exp = 0
@@ -65,6 +65,7 @@ class MAP:
         self.memory = numpy.zeros((1000,1000))
         self.floor = 0
         self.player = PLAYER()
+        self.key = POS()
         self.items = numpy.array([POS() for _ in range(1)])
         self.monsters = numpy.array([MONSTER() for _ in range(1)])
         self.damagesView = numpy.array([DAMAGESVIEW() for _ in range(50)])
@@ -80,9 +81,11 @@ class GAME:
 def move_monsters(game = GAME()):
     for monster in game.map.monsters:
         if(monster.attributes.hp<1):
-            monster.pos.y = -1
-            monster.pos.x = -1
             if(monster.alive):
+                if(monster.key):
+                    game.map.key = monster.pos
+                monster.pos.y = -1
+                monster.pos.x = -1
                 game.map.player.exp+=random.randint(1,game.map.floor)
                 monster.alive = False
         if(monster.alive):
@@ -93,6 +96,18 @@ def move_monsters(game = GAME()):
                 target.x = 0
                 forbiddenBlcoks = [0]
                 direction = random.randint(0,3)
+                if((monster.pos.y-game.map.player.pos.y>=0-monster.attributes.intelligence or monster.pos.y-game.map.player.pos.y<=monster.attributes.intelligence) and (monster.pos.x-game.map.player.pos.x>=0-monster.attributes.intelligence or monster.pos.x-game.map.player.pos.x<=monster.attributes.intelligence)):
+                    if(random.random()<0.75):
+                        if(random.random()<0.5):
+                            if(monster.pos.y-game.map.player.pos.y>0):
+                                direction = 0
+                            else:
+                                direction = 1
+                        else:
+                            if(monster.pos.x-game.map.player.pos.x>0):
+                                direction = 2
+                            else:
+                                direction = 3
                 if(direction==0):
                     target.y-=1
                 if(direction==1):
@@ -153,8 +168,13 @@ def move_player(game = GAME()):
             target.x+=1
             clock = True
         if(keyboard.is_pressed('enter')):
-            if(game.map.tiles[game.map.player.pos.y][game.map.player.pos.x]==2):
-                game.next = True
+            if(game.map.player.key):
+                if(game.map.tiles[game.map.player.pos.y][game.map.player.pos.x]==2):
+                    game.next = True
+            if(game.map.player.pos.y == game.map.key.y and game.map.player.pos.x == game.map.key.x):
+                game.map.player.key = True
+                game.map.key.y = -1
+                game.map.key.x = -1
         if(keyboard.is_pressed('esc')):
             game.play = False
             game.next = True
@@ -172,7 +192,7 @@ def move_player(game = GAME()):
                 game.map.player.pos.y-=target.y
                 game.map.player.pos.x-=target.x
             for monster in game.map.monsters:
-                if(game.map.player.pos.y==monster.pos.y and game.map.player.pos.x==monster.pos.x):
+                if(game.map.player.pos == monster.pos):
                     game.map.player.pos.y-=target.y
                     game.map.player.pos.x-=target.x
 
@@ -276,7 +296,9 @@ def put_attributes(game = GAME()):
         screen.fill("black")
 
         font = pygame.font.SysFont('Comic Sans MS', 50)
-        points_text = font.render(f'ATTRIBUTES POINTS: {game.map.player.attPoints}', True, (255, 255, 255))
+        points_text = font.render(f'ATTRIBUTES POINTS: {game.map.player.attPoints}', True, (0, 255, 0))
+        if(game.map.player.attPoints<=0):
+            points_text = font.render(f'ATTRIBUTES POINTS: {game.map.player.attPoints}', True, (255, 0, 0))
         if(game.attSelection==0):
             hp_text = font.render(f'> HP: {game.map.player.attributes.hp} / {game.map.player.attributes.hpMax}', True, (255, 245, 150))
         else:
@@ -339,7 +361,7 @@ def put_attributes(game = GAME()):
                             game.map.player.attributes.intelligence+=1
                     if(game.attSelection==4):
                         game.map.player.attPoints-=1
-                        game.map.player.attributes.dexterity+=(random.randint(1,5)/10)
+                        game.map.player.attributes.dexterity+=0.1
                 if(game.attSelection==5):
                     break
         pygame.display.flip()
@@ -367,8 +389,8 @@ def create_map(game = GAME()):
         floorMap = floor
         if(floorMap>50):
             floorMap = 50
-        tamY = random.randint(1,floorMap+1)
-        tamX = random.randint(1,floorMap+1)
+        tamY = random.randint(1,10)
+        tamX = random.randint(1,10)
         if(tamY>10):
             tamY = random.randint(1,10)
         if(tamX>10):
@@ -391,12 +413,12 @@ def create_map(game = GAME()):
                 game.map.tiles[mapY][mapX] = 1
             else:
                 direction = random.randint(0,3)
-            if(random.random()<=0.25):
+            if(random.random()<0.25):
                 direction = random.randint(0,3)
             if(random.randint(0,floor+1)==0):
                 break
         if(i>=floorMap+1):
-            if(random.random()<=0.5):
+            if(random.random()<0.5):
                 game.map.tiles[mapY][mapX] = 2
                 break
         i+=1
@@ -414,6 +436,11 @@ def create_map(game = GAME()):
         for i in range(1000000):
             monster.pos.y = random.randint(0,999)
             monster.pos.x = random.randint(0,999)
+            monster.attributes.hpMax = 1
+            monster.attributes.defense = 1
+            monster.attributes.strenght = 1
+            monster.attributes.intelligence = 1
+            monster.attributes.dexterity = 1
             if(game.map.tiles[monster.pos.y][monster.pos.x]==1):
                 if(game.map.player.pos.y!=monster.pos.y and game.map.player.pos.x!=monster.pos.x):
                     attPoints = game.map.player.level+game.map.floor
@@ -434,7 +461,7 @@ def create_map(game = GAME()):
                                 monster.attributes.intelligence+=1
                         if(attribute==4):
                             attPoints-=1
-                            monster.attributes.dexterity+=(random.randint(1,5)/10)
+                            monster.attributes.dexterity+=0.1
                     if(key==False):
                         if(random.random()<0.5):
                             monster.key = True
@@ -483,8 +510,8 @@ def play(game = GAME()):
     screen.fill("black")
     if(game.next):
         game.map.floor+=1
+        game.map.player.key = False
         game.map.player.firstAtt = True
-        game.map.player.attPoints += 1
         put_attributes(game)
         if(running==False):
             return 0
