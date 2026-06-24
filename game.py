@@ -8,6 +8,20 @@ pygame.init()
 screen = pygame.display.set_mode((1000, 1000))
 clock = pygame.time.Clock()
 running = True
+#----------------------------------------------------------------------------------------------------------------------------------------
+
+# LORE
+
+"""
+O jogador se encontra em um desafio entre a vida e a morte e ele precisa chegar até o final para 
+mostrar o seu verdadeiro significado e ir para o paraiso.
+
+Pode se entender que o jogador se encontra em um tipo de punição
+onde ele luta infinitamente contra a personificação dos seus proprios pecados. 
+
+mas ele nunca percebeu isso e acredita que deve continuar lutando
+cada morte é uma nova memoria e tentativa perdida de tentar chegar em algo que nunca existiu de verdade.
+"""
 
 #----------------------------------------------------------------------------------------------------------------------------------------
 class POS:
@@ -106,16 +120,27 @@ def move_monsters(game = GAME()):
                 direction = random.randint(0,3)
                 if((monster.pos.y-game.map.player.pos.y>=0-monster.attributes.intelligence and monster.pos.y-game.map.player.pos.y<=monster.attributes.intelligence) and (monster.pos.x-game.map.player.pos.x>=0-monster.attributes.intelligence and monster.pos.x-game.map.player.pos.x<=monster.attributes.intelligence)):
                     if(random.random()<0.75):
-                        if(random.random()<0.5):
+                        if(monster.pos.y-game.map.player.pos.y==0):
+                            if(monster.pos.x-game.map.player.pos.x>0):
+                                direction = 2
+                            else:
+                                direction = 3
+                        elif(monster.pos.x-game.map.player.pos.x==0):
                             if(monster.pos.y-game.map.player.pos.y>0):
                                 direction = 0
                             else:
                                 direction = 1
                         else:
-                            if(monster.pos.x-game.map.player.pos.x>0):
-                                direction = 2
+                            if(random.random()<0.5):
+                                if(monster.pos.y-game.map.player.pos.y>0):
+                                    direction = 0
+                                else:
+                                    direction = 1
                             else:
-                                direction = 3
+                                if(monster.pos.x-game.map.player.pos.x>0):
+                                    direction = 2
+                                else:
+                                    direction = 3
                 if(direction==0):
                     target.y-=1
                 if(direction==1):
@@ -135,8 +160,10 @@ def move_monsters(game = GAME()):
 
                     damage = random.randint(1,monster.attributes.strenght)
                     defense = random.randint(0,game.map.player.attributes.defense)
-                    if(defense>damage):
+                    if(defense>=damage):
                         defense = damage
+                    else:
+                        game.map.player.inventoryOpened = False
                     game.map.player.attributes.hp-=(damage-defense)
                     objectView = random.randint(0,49)
                     game.map.damagesView[objectView].value = (0-(damage-defense))
@@ -156,84 +183,87 @@ def move_monsters(game = GAME()):
 #----------------------------------------------------------------------------------------------------------------------------------------
 def move_player(game = GAME()):
     if(game.map.player.attributes.hp<1):
-        game.play = False
-    if(time.perf_counter()-game.map.player.clockSpeed>1/game.map.player.attributes.dexterity):
-        clock = False
-        target = POS()
-        target.y = 0
-        target.x = 0
-        forbiddenBlcoks = [0]
-        if(keyboard.is_pressed('w')):
-            clock = True
-            if(not game.map.player.inventoryOpened):
-                target.y-=1
-            else:
-                game.map.player.inventorySelection.y-=1
-        if(keyboard.is_pressed('s')):
-            clock = True
-            if(not game.map.player.inventoryOpened):
-                target.y+=1
-            else:
-                game.map.player.inventorySelection.y+=1
-        if(keyboard.is_pressed('a')):
-            clock = True
-            if(not game.map.player.inventoryOpened):
-                target.x-=1
-            else:
-                game.map.player.inventorySelection.x-=1
-        if(keyboard.is_pressed('d')):
-            clock = True
-            if(not game.map.player.inventoryOpened):
-                target.x+=1
-            else:
-                game.map.player.inventorySelection.x+=1
-        if(keyboard.is_pressed('enter')):
-            if(game.map.player.key):
-                if(game.map.tiles[game.map.player.pos.y][game.map.player.pos.x]==2):
-                    game.next = True
-            if(game.map.player.pos.y == game.map.key.y and game.map.player.pos.x == game.map.key.x):
-                game.map.player.key = True
-                game.map.key.y = -1
-                game.map.key.x = -1
         if(keyboard.is_pressed('esc')):
             game.play = False
-            game.next = True
-        if(keyboard.is_pressed('i')):
-            clock = True
-            if(game.map.player.inventoryOpened==False):
-                game.map.player.inventoryOpened = True
-            else:
-                game.map.player.inventoryOpened = False
-        if(clock):
-            game.map.player.clockSpeed = time.perf_counter()
-        if((target.y!=0 and target.x==0) or (target.y==0 and target.x!=0)):
-            if(game.map.player.exp>=game.map.player.nextExp):
-                game.map.player.attPoints+=1
-                game.map.player.level+=1
-                game.map.player.exp = 0
-                game.map.player.nextExp+=random.randint(1,game.map.floor)
-            game.map.player.pos.y+=target.y
-            game.map.player.pos.x+=target.x
-            if(game.map.tiles[game.map.player.pos.y][game.map.player.pos.x] in forbiddenBlcoks):
-                game.map.player.pos.y-=target.y
-                game.map.player.pos.x-=target.x
-            for monster in game.map.monsters:
-                if(game.map.player.pos.y == monster.pos.y and game.map.player.pos.x == monster.pos.x):
+    else:
+        if(time.perf_counter()-game.map.player.clockSpeed>1/game.map.player.attributes.dexterity):
+            clock = False
+            target = POS()
+            target.y = 0
+            target.x = 0
+            forbiddenBlcoks = [0]
+            if(keyboard.is_pressed('w')):
+                clock = True
+                if(not game.map.player.inventoryOpened):
+                    target.y-=1
+                else:
+                    game.map.player.inventorySelection.y-=1
+            if(keyboard.is_pressed('s')):
+                clock = True
+                if(not game.map.player.inventoryOpened):
+                    target.y+=1
+                else:
+                    game.map.player.inventorySelection.y+=1
+            if(keyboard.is_pressed('a')):
+                clock = True
+                if(not game.map.player.inventoryOpened):
+                    target.x-=1
+                else:
+                    game.map.player.inventorySelection.x-=1
+            if(keyboard.is_pressed('d')):
+                clock = True
+                if(not game.map.player.inventoryOpened):
+                    target.x+=1
+                else:
+                    game.map.player.inventorySelection.x+=1
+            if(keyboard.is_pressed('enter')):
+                if(game.map.player.key):
+                    if(game.map.tiles[game.map.player.pos.y][game.map.player.pos.x]==2):
+                        game.next = True
+                if(game.map.player.pos.y == game.map.key.y and game.map.player.pos.x == game.map.key.x):
+                    game.map.player.key = True
+                    game.map.key.y = -1
+                    game.map.key.x = -1
+                
+            if(keyboard.is_pressed('esc')):
+                game.play = False
+                game.next = True
+            if(keyboard.is_pressed('i')):
+                clock = True
+                if(game.map.player.inventoryOpened==False):
+                    game.map.player.inventoryOpened = True
+                else:
+                    game.map.player.inventoryOpened = False
+            if(clock):
+                game.map.player.clockSpeed = time.perf_counter()
+            if((target.y!=0 and target.x==0) or (target.y==0 and target.x!=0)):
+                if(game.map.player.exp>=game.map.player.nextExp):
+                    game.map.player.attPoints+=1
+                    game.map.player.level+=1
+                    game.map.player.exp = 0
+                    game.map.player.nextExp+=random.randint(1,game.map.floor)
+                game.map.player.pos.y+=target.y
+                game.map.player.pos.x+=target.x
+                if(game.map.tiles[game.map.player.pos.y][game.map.player.pos.x] in forbiddenBlcoks):
                     game.map.player.pos.y-=target.y
                     game.map.player.pos.x-=target.x
+                for monster in game.map.monsters:
+                    if(game.map.player.pos.y == monster.pos.y and game.map.player.pos.x == monster.pos.x):
+                        game.map.player.pos.y-=target.y
+                        game.map.player.pos.x-=target.x
 
-                    damage = random.randint(1,game.map.player.attributes.strenght)
-                    defense = random.randint(0,monster.attributes.defense)
-                    if(defense>damage):
-                        defense = damage
-                    monster.attributes.hp-=(damage-defense)
-                    objectView = random.randint(0,49)
+                        damage = random.randint(1,game.map.player.attributes.strenght)
+                        defense = random.randint(0,monster.attributes.defense)
+                        if(defense>damage):
+                            defense = damage
+                        monster.attributes.hp-=(damage-defense)
+                        objectView = random.randint(0,49)
 
-                    game.map.damagesView[objectView].value = (damage-defense)
-                    game.map.damagesView[objectView].id = 0
-                    game.map.damagesView[objectView].pos.y = random.randint(250,750)
-                    game.map.damagesView[objectView].pos.x = random.randint(250,750)
-                    game.map.damagesView[objectView].size = 50
+                        game.map.damagesView[objectView].value = (damage-defense)
+                        game.map.damagesView[objectView].id = 0
+                        game.map.damagesView[objectView].pos.y = random.randint(250,750)
+                        game.map.damagesView[objectView].pos.x = random.randint(250,750)
+                        game.map.damagesView[objectView].size = 50
 #----------------------------------------------------------------------------------------------------------------------------------------
 def simulate_vision(game = GAME(),y=0,x=0,i=0):
     if(i>=1):
@@ -264,7 +294,7 @@ def render_inventory(game = GAME()):
     screen.blit(strenght_text, (210,45))
     intelligence_text = font.render(f'Intelligence: {game.map.player.attributes.intelligence}', True, (255, 255, 255))
     screen.blit(intelligence_text, (210,70))
-    dexterity_text = font.render(f'Dexterity: {game.map.player.attributes.dexterity}', True, (255, 255, 255))
+    dexterity_text = font.render(f'Dexterity: {game.map.player.attributes.dexterity:.1f}', True, (255, 255, 255))
     screen.blit(dexterity_text, (210,90))
     floor_text = font.render(f'Floor {game.map.floor}', True, (255, 255, 255))
     screen.blit(floor_text, (10,270))
@@ -302,27 +332,34 @@ def render_game(game = GAME()):
                         pygame.draw.rect(screen,"#ffffff",(X,Y,50,50))
                     pygame.draw.rect(screen,"#363636",(X+5,Y+5,40,40))
                 if(game.map.key.y==game.map.player.pos.y+y and game.map.key.x==game.map.player.pos.x+x):
-                    pygame.draw.circle(screen,"#fbff00",[X+25,Y+25],10)
+                    pygame.draw.lines(screen,"#fbff00",False,[[X+25,Y+20],[X+20,Y+25],[X+25,Y+30],[X+30,Y+25],[X+25,Y+20]],4)
+                    pygame.draw.lines(screen,"#fbff00",False,[[X+25,Y+20],[X+25,Y+10]],3)
                 for item in game.map.items:
                     if(item.y==game.map.player.pos.y+y and item.x==game.map.player.pos.x+x):
                         pygame.draw.circle(screen,"#ffffff",[X+25,Y+25],10)
                 for monster in game.map.monsters:
                     if(monster.pos.y==game.map.player.pos.y+y and monster.pos.x==game.map.player.pos.x+x):
-                        pygame.draw.circle(screen,"#ff0000",[X+25,Y+25],20)
+                        pygame.draw.circle(screen,"#000000",[X+25,Y+25],20)
+                        pygame.draw.circle(screen,"#000000",[X+random.randint(10,40),Y+random.randint(10,40)],random.randint(1,10))
                 if(y==0 and x==0):
-                    pygame.draw.circle(screen,"#ffffff",[X+25,Y+25],20)
+                    if(game.map.player.attributes.hp<1):
+                        pygame.draw.lines(screen,"#ffffff",False,[[X+5,Y+45],[X+45,Y+45]],10)
+                        pygame.draw.rect(screen,"#ffffff",(X+10,Y+5,30,40))
+                    else:
+                        pygame.draw.circle(screen,"#ffffff",[X+25,Y+25],20)
 
-    for damageObject in game.map.damagesView:
-        if(damageObject.size>0):
-            font = pygame.font.SysFont('Comic Sans MS', damageObject.size)
-            damage_text = font.render(f"{damageObject.value}", True, "#ffffff")
-            if(damageObject.id==1):
-                damage_text = font.render(f"{damageObject.value}", True, "#ff0000")
-            screen.blit(damage_text, (damageObject.pos.x+random.randint(-1,1),damageObject.pos.y+random.randint(-1,1)))
-            if(random.random()<0.25):
-                damageObject.size-=1
-                damageObject.pos.y+=random.randint(-1,1)
-                damageObject.pos.x+=random.randint(-1,1)
+    if(game.map.player.attributes.hp>=1):
+        for damageObject in game.map.damagesView:
+            if(damageObject.size>0):
+                font = pygame.font.SysFont('Comic Sans MS', damageObject.size)
+                damage_text = font.render(f"{damageObject.value}", True, "#e2e2e2")
+                if(damageObject.id==1):
+                    damage_text = font.render(f"{damageObject.value}", True, "#ff0000")
+                screen.blit(damage_text, (damageObject.pos.x+random.randint(-1,1),damageObject.pos.y+random.randint(-1,1)))
+                if(random.random()<0.25):
+                    damageObject.size-=1
+                    damageObject.pos.y+=random.randint(-1,1)
+                    damageObject.pos.x+=random.randint(-1,1)
 
     font = pygame.font.SysFont('Comic Sans MS', 20)
     hpBar = (game.map.player.attributes.hp/game.map.player.attributes.hpMax)*200
@@ -332,11 +369,22 @@ def render_game(game = GAME()):
     expBar = (game.map.player.exp/game.map.player.nextExp)*200
     pygame.draw.rect(screen,"#464935",(790,35,200,20))
     pygame.draw.rect(screen,"#e0fe00",(790,35,expBar,20))
+    if(game.map.player.key):
+        X = 950
+        Y = 55
+        pygame.draw.lines(screen,"#fbff00",False,[[X+25,Y+20],[X+20,Y+25],[X+25,Y+30],[X+30,Y+25],[X+25,Y+20]],4)
+        pygame.draw.lines(screen,"#fbff00",False,[[X+25,Y+20],[X+25,Y+10]],3)
+    
+
 
     hpValue_text = font.render(f'{game.map.player.attributes.hp} / {game.map.player.attributes.hpMax}', True, "#000000")
     expValue_text = font.render(f'{game.map.player.exp} / {game.map.player.nextExp}', True, "#000000")
     screen.blit(hpValue_text, (890-hpValue_text.get_size()[0]/2,19-hpValue_text.get_size()[1]/2))
     screen.blit(expValue_text, (890-expValue_text.get_size()[0]/2,44-expValue_text.get_size()[1]/2))
+    if(game.map.player.attributes.hp<1):
+        font = pygame.font.SysFont('Comic Sans MS', 50)
+        continue_text = font.render("'ESC' to continue", True, "#FF0000")
+        screen.blit(continue_text, (500-continue_text.get_size()[0]/2+random.randint(-1,1),850-continue_text.get_size()[1]/2+random.randint(-1,1)))
     if(game.map.player.inventoryOpened):
         render_inventory(game)
 #----------------------------------------------------------------------------------------------------------------------------------------
