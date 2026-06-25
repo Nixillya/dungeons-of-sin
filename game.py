@@ -122,29 +122,30 @@ def move_monsters(game = GAME()):
                 target.x = 0
                 forbiddenBlcoks = [0,3]
                 direction = random.randint(0,3)
-                if((monster.pos.y-game.map.player.pos.y>=0-monster.attributes.intelligence and monster.pos.y-game.map.player.pos.y<=monster.attributes.intelligence) and (monster.pos.x-game.map.player.pos.x>=0-monster.attributes.intelligence and monster.pos.x-game.map.player.pos.x<=monster.attributes.intelligence)):
-                    if(random.random()<0.75):
-                        if(monster.pos.y-game.map.player.pos.y==0):
-                            if(monster.pos.x-game.map.player.pos.x>0):
-                                direction = 2
-                            else:
-                                direction = 3
-                        elif(monster.pos.x-game.map.player.pos.x==0):
-                            if(monster.pos.y-game.map.player.pos.y>0):
-                                direction = 0
-                            else:
-                                direction = 1
-                        else:
-                            if(random.random()<0.5):
+                if(game.map.player.attributes.hp>0):
+                    if((monster.pos.y-game.map.player.pos.y>=0-monster.attributes.intelligence and monster.pos.y-game.map.player.pos.y<=monster.attributes.intelligence) and (monster.pos.x-game.map.player.pos.x>=0-monster.attributes.intelligence and monster.pos.x-game.map.player.pos.x<=monster.attributes.intelligence)):
+                        if(random.random()<0.75):
+                            if(monster.pos.y-game.map.player.pos.y==0):
+                                if(monster.pos.x-game.map.player.pos.x>0):
+                                    direction = 2
+                                else:
+                                    direction = 3
+                            elif(monster.pos.x-game.map.player.pos.x==0):
                                 if(monster.pos.y-game.map.player.pos.y>0):
                                     direction = 0
                                 else:
                                     direction = 1
                             else:
-                                if(monster.pos.x-game.map.player.pos.x>0):
-                                    direction = 2
+                                if(random.random()<0.5):
+                                    if(monster.pos.y-game.map.player.pos.y>0):
+                                        direction = 0
+                                    else:
+                                        direction = 1
                                 else:
-                                    direction = 3
+                                    if(monster.pos.x-game.map.player.pos.x>0):
+                                        direction = 2
+                                    else:
+                                        direction = 3
                 if(direction==0):
                     target.y-=1
                 if(direction==1):
@@ -155,11 +156,10 @@ def move_monsters(game = GAME()):
                     target.x+=1
                 monster.pos.y+=target.y
                 monster.pos.x+=target.x
-                for item in game.map.items:
-                    if(monster.pos.y==item.y and monster.pos.x==item.x):
-                        item.y = -1
-                        item.x = -1
                 if(game.map.tiles[monster.pos.y][monster.pos.x] in forbiddenBlcoks):
+                    if(game.map.tiles[monster.pos.y][monster.pos.x]==3):
+                        if(random.random()<0.1):
+                            game.map.tiles[monster.pos.y][monster.pos.x] = 1
                     monster.pos.y-=target.y
                     monster.pos.x-=target.x
                 if(game.map.player.pos.y==monster.pos.y and game.map.player.pos.x==monster.pos.x):
@@ -167,11 +167,18 @@ def move_monsters(game = GAME()):
                     monster.pos.x-=target.x
                     if(game.map.player.attributes.hp>=1):
                         damage = random.randint(1,monster.attributes.strenght)
+                        if(random.random()<0.5):
+                            damage+=monster.attributes.intelligence
                         defense = random.randint(0,game.map.player.attributes.defense)
+                        if(random.random()<0.5):
+                            defense+=monster.attributes.intelligence
                         if(defense>=damage):
                             defense = damage
                         else:
                             game.map.player.inventoryOpened = False
+                        if(game.map.player.attributes.hp!=1):
+                            if(damage-defense>=game.map.player.attributes.hp):
+                                damage = game.map.player.attributes.hp-1
                         game.map.player.attributes.hp-=(damage-defense)
                         objectView = random.randint(0,49)
                         game.map.damagesView[objectView].value = (0-(damage-defense))
@@ -188,6 +195,10 @@ def move_monsters(game = GAME()):
                             monster.pos.y-=target.y
                             monster.pos.x-=target.x
                             break
+                for item in game.map.items:
+                    if(monster.pos.y==item.y and monster.pos.x==item.x):
+                        item.y = -1
+                        item.x = -1
 #----------------------------------------------------------------------------------------------------------------------------------------
 def move_player(game = GAME()):
     if(game.map.player.attributes.hp<1):
@@ -271,6 +282,7 @@ def move_player(game = GAME()):
                                 game.map.player.pos.y = y
                                 game.map.player.pos.x = x
                                 break
+                        game.map.player.inventory[game.map.player.inventorySelection.y][game.map.player.inventorySelection.x].id = 0
             if(keyboard.is_pressed('esc')):
                 game.play = False
                 game.next = True
@@ -302,7 +314,11 @@ def move_player(game = GAME()):
                         game.map.player.pos.x-=target.x
 
                         damage = random.randint(1,game.map.player.attributes.strenght)
+                        if(random.random()<0.5):
+                            damage+=game.map.player.attributes.intelligence
                         defense = random.randint(0,monster.attributes.defense)
+                        if(random.random()<0.5):
+                            defense+=game.map.player.attributes.intelligence
                         if(defense>damage):
                             defense = damage
                         monster.attributes.hp-=(damage-defense)
@@ -387,7 +403,7 @@ def render_game(game = GAME()):
                 if(game.map.tiles[game.map.player.pos.y+y][game.map.player.pos.x+x]==2):
                     if(game.map.player.key):
                         pygame.draw.rect(screen,"#ffffff",(X,Y,50,50))
-                    pygame.draw.rect(screen,"#363636",(X+5,Y+5,40,40))
+                    pygame.draw.rect(screen,"#363636",(X+5+random.randint(-1,1),Y+5+random.randint(-1,1),40,40))
                 if(game.map.tiles[game.map.player.pos.y+y][game.map.player.pos.x+x]==3):
                     pygame.draw.rect(screen,"#545454",(X,Y,50,50))
                 if(game.map.key.y==game.map.player.pos.y+y and game.map.key.x==game.map.player.pos.x+x):
@@ -397,17 +413,17 @@ def render_game(game = GAME()):
                     if(item.y==game.map.player.pos.y+y and item.x==game.map.player.pos.x+x):
                         pygame.draw.rect(screen,"#641C00",(X+5,Y+15,40,30))
                         pygame.draw.rect(screen,"#792200",(X+5,Y+5,40,10))
-                        pygame.draw.rect(screen,"#FFBF8A",(X+23,Y+8,5,13))
+                        pygame.draw.rect(screen,"#B3B3B3",(X+23,Y+8,5,13))
                 for monster in game.map.monsters:
                     if(monster.pos.y==game.map.player.pos.y+y and monster.pos.x==game.map.player.pos.x+x):
                         pygame.draw.circle(screen,"#000000",[X+25+random.randint(-2,2),Y+25+random.randint(-2,2)],20)
                         pygame.draw.circle(screen,"#000000",[X+random.randint(10,40),Y+random.randint(10,40)],random.randint(1,10))
                 if(y==0 and x==0):
                     if(game.map.player.attributes.hp<1):
-                        pygame.draw.lines(screen,"#ffffff",False,[[X+5,Y+45],[X+45,Y+45]],10)
-                        pygame.draw.rect(screen,"#ffffff",(X+10,Y+5,30,40))
+                        pygame.draw.lines(screen,"#5e5e5e",False,[[X+5,Y+40],[X+45,Y+40]],10)
+                        pygame.draw.rect(screen,"#5e5e5e",(X+10,Y+5,30,35))
                     else:
-                        pygame.draw.circle(screen,"#ffffff",[X+25,Y+25],20)
+                        pygame.draw.circle(screen,"#ffffff",[X+25+random.randint(-1,1),Y+25+random.randint(-1,1)],20)
 
     for damageObject in game.map.damagesView:
         if(damageObject.size>0):
