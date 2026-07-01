@@ -475,8 +475,10 @@ def move_monsters(game = GAME()):
                         if(defense<damage):
                             game.map.player.dice = random.randint(1,100)
                         if(monster.id==4):
-                            if(random.random()<0.5):
-                                debuff = random.randint(0,4)
+                            if(random.random()<0.75):
+                                debuff = random.randint(0,2)
+                                if(random.random()<0.25):
+                                    debuff = random.randint(0,4)
                                 if(debuff==0):
                                     game.map.player.attributes.hpMax-=1
                                 if(debuff==1):
