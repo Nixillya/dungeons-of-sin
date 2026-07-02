@@ -1133,45 +1133,45 @@ def put_attributes(game = GAME()):
                 if(random.random()<0.1):
                     pygame.draw.circle(screen,"#161616",[X+random.randint(10,40),Y+random.randint(10,40)],random.randint(1,10))
         font = pygame.font.SysFont('Comic Sans MS', 50)
-        points_text = font.render(f'ATTRIBUTES POINTS: {game.map.player.attPoints}', True, (0, 255, 0))
+        points_text = font.render(f'ATTRIBUTES POINTS: {game.map.player.attPoints}', True, "#1EFF00")
         if(game.map.player.attPoints<=0):
-            points_text = font.render(f'ATTRIBUTES POINTS: {game.map.player.attPoints}', True, (255, 0, 0))
+            points_text = font.render(f'ATTRIBUTES POINTS: {game.map.player.attPoints}', True, "#FF0000")
         screen.blit(points_text, (500-points_text.get_size()[0]/2+random.randint(-1,1),100-points_text.get_size()[1]/2+random.randint(-1,1)))
         if(game.attSelection==0):
-            hp_text = font.render(f'> HP: {game.map.player.attributes.hp} / {game.map.player.attributes.hpMax}', True, (255, 245, 150))
+            hp_text = font.render(f'> HP: {game.map.player.attributes.hp} / {game.map.player.attributes.hpMax}', True, "#FFF67B")
             screen.blit(hp_text, (500-hp_text.get_size()[0]/2+random.randint(-1,1),250-hp_text.get_size()[1]/2+random.randint(-1,1)))
         else:
-            hp_text = font.render(f'HP: {game.map.player.attributes.hp} / {game.map.player.attributes.hpMax}', True, (255, 255, 255))
+            hp_text = font.render(f'HP: {game.map.player.attributes.hp} / {game.map.player.attributes.hpMax}', True, "#FFFFFF")
             screen.blit(hp_text, (500-hp_text.get_size()[0]/2,250-hp_text.get_size()[1]/2))
         if(game.attSelection==1):
-            defense_text = font.render(f'> DEFENSE: {game.map.player.attributes.defense}', True, (255, 245, 150))
+            defense_text = font.render(f'> DEFENSE: {game.map.player.attributes.defense}', True, "#FFF67B")
             screen.blit(defense_text, (500-defense_text.get_size()[0]/2+random.randint(-1,1),350-defense_text.get_size()[1]/2+random.randint(-1,1)))
         else:
-            defense_text = font.render(f'DEFENSE: {game.map.player.attributes.defense}', True, (255, 255, 255))
+            defense_text = font.render(f'DEFENSE: {game.map.player.attributes.defense}', True, "#FFFFFF")
             screen.blit(defense_text, (500-defense_text.get_size()[0]/2,350-defense_text.get_size()[1]/2))
         if(game.attSelection==2):
-            strength_text = font.render(f'> STRENGTH: {game.map.player.attributes.strength}', True, (255, 245, 150))
+            strength_text = font.render(f'> STRENGTH: {game.map.player.attributes.strength}', True, "#FFF67B")
             screen.blit(strength_text, (500-strength_text.get_size()[0]/2+random.randint(-1,1),450-strength_text.get_size()[1]/2+random.randint(-1,1)))
         else:
-            strength_text = font.render(f'STRENGTH: {game.map.player.attributes.strength}', True, (255, 255, 255))
+            strength_text = font.render(f'STRENGTH: {game.map.player.attributes.strength}', True, "#FFFFFF")
             screen.blit(strength_text, (500-strength_text.get_size()[0]/2,450-strength_text.get_size()[1]/2))
         if(game.attSelection==3):
-            intelligence_text = font.render(f'> INTELLIGENCE: {game.map.player.attributes.intelligence}', True, (255, 245, 150))
+            intelligence_text = font.render(f'> INTELLIGENCE: {game.map.player.attributes.intelligence}', True, "#FFF67B")
             screen.blit(intelligence_text, (500-intelligence_text.get_size()[0]/2+random.randint(-1,1),550-intelligence_text.get_size()[1]/2+random.randint(-1,1)))
         else:
-            intelligence_text = font.render(f'INTELLIGENCE: {game.map.player.attributes.intelligence}', True, (255, 255, 255))
+            intelligence_text = font.render(f'INTELLIGENCE: {game.map.player.attributes.intelligence}', True, "#FFFFFF")
             screen.blit(intelligence_text, (500-intelligence_text.get_size()[0]/2,550-intelligence_text.get_size()[1]/2))
         if(game.attSelection==4):
-            dexterity_text = font.render(f'> DEXTERITY: {game.map.player.attributes.dexterity:.1f}', True, (255, 245, 150))
+            dexterity_text = font.render(f'> DEXTERITY: {game.map.player.attributes.dexterity:.1f}', True, "#FFF67B")
             screen.blit(dexterity_text, (500-dexterity_text.get_size()[0]/2+random.randint(-1,1),650-dexterity_text.get_size()[1]/2+random.randint(-1,1)))
         else:
-            dexterity_text = font.render(f'DEXTERITY: {game.map.player.attributes.dexterity:.1f}', True, (255, 255, 255))
+            dexterity_text = font.render(f'DEXTERITY: {game.map.player.attributes.dexterity:.1f}', True, "#FFFFFF")
             screen.blit(dexterity_text, (500-dexterity_text.get_size()[0]/2,650-dexterity_text.get_size()[1]/2))
         if(game.attSelection==5):
-            continue_text = font.render(f'> CONTINUE', True, (255, 245, 150))
+            continue_text = font.render(f'> CONTINUE', True, "#FFF67B")
             screen.blit(continue_text, (500-continue_text.get_size()[0]/2+random.randint(-1,1),900-continue_text.get_size()[1]/2+random.randint(-1,1)))
         else:
-            continue_text = font.render(f'CONTINUE', True, (255, 255, 255))
+            continue_text = font.render(f'CONTINUE', True, "#FFFFFF")
             screen.blit(continue_text, (500-continue_text.get_size()[0]/2,900-continue_text.get_size()[1]/2))
         if(time.perf_counter()-game.map.player.clockSpeed>0.2):
             if(keyboard.is_pressed('w')):
@@ -1296,22 +1296,11 @@ def create_map(game = GAME()):
             monster.camPos.y = (monster.pos.y*50-game.map.player.pos.y*50)
             monster.camPos.x = (monster.pos.x*50-game.map.player.pos.x*50)
             fail = False
-            y = monster.pos.y
-            x = monster.pos.x
-            for i in range(100):
-                if(random.random()<0.5):
-                    if(random.random()<0.5):
-                        y+=1
-                    else:
-                        y-=1
-                else:
-                    if(random.random()<0.5):
-                        x+=1
-                    else:
-                        x-=1
-                if(game.map.player.pos.y==y and game.map.player.pos.x==x):
-                    fail = True
-                    break
+            for y1 in range(random.randint(1,10)):
+                for x1 in range(random.randint(1,10)):
+                    if(game.map.player.pos.y==monster.pos.y+y1 and game.map.player.pos.x==monster.pos.x+x1):
+                        fail = True
+                        break
             if(fail):
                 continue
             monster.id = random.randint(0,4)
@@ -1405,21 +1394,24 @@ def menu(game = GAME()):
                 pygame.draw.circle(screen,"#161616",[X+random.randint(10,40),Y+random.randint(10,40)],random.randint(1,10))
     font = pygame.font.SysFont('Comic Sans MS', 50)
     font_title = pygame.font.SysFont('Comic Sans MS', 80)
-    title_text = font_title.render('DUNGEONS OF SIN',True,(255, 255, 255))
+    title_text = font_title.render('DUNGEONS OF SIN',True,"#FFFFFF")
     screen.blit(title_text, ((500-title_text.get_size()[0]/2)+random.randint(-1,1),(250-title_text.get_size()[1]/2)+random.randint(-1,1)))
     if game.menu.selection==0:
-        play_text = font.render('> PLAY', True, (255, 245, 150))
+        play_text = font.render('> PLAY', True, "#FFF67B")
         screen.blit(play_text, ((500-play_text.get_size()[0]/2)+random.randint(-2,2),(450-play_text.get_size()[1]/2)+random.randint(-2,2)))
     else:
-        play_text = font.render('  PLAY', True, (255, 255, 255))
+        play_text = font.render('  PLAY', True, "#FFFFFF")
         screen.blit(play_text, ((500-play_text.get_size()[0]/2),(450-play_text.get_size()[1]/2)))
     if game.menu.selection==1:
-        exit_text = font.render('> EXIT', True, (255, 245, 150))
+        exit_text = font.render('> EXIT', True, "#FFF67B")
         screen.blit(exit_text, ((500-exit_text.get_size()[0]/2)+random.randint(-2,2),(550-exit_text.get_size()[1]/2)+random.randint(-2,2)))
     else:
-        exit_text = font.render('  EXIT', True, (255, 255, 255))
+        exit_text = font.render('  EXIT', True, "#FFFFFF")
         screen.blit(exit_text, ((500-exit_text.get_size()[0]/2),(550-exit_text.get_size()[1]/2)))
     
+    version_text = font.render('V 0.3.6', True, "#505050")
+    screen.blit(version_text, ((900-version_text.get_size()[0]/2),(900-version_text.get_size()[1]/2)))
+
     if(keyboard.is_pressed('w')):
         game.menu.selection = 0
     if(keyboard.is_pressed('s')):
