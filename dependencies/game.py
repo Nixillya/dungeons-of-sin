@@ -103,49 +103,53 @@ class MAP:
         self.damagesView = numpy.array([DAMAGESVIEW() for _ in range(50)])
 class MENU:
     selection = 0
+
+class DETAILS:
+    darking = False
+    undarking = False
+    darkAnimation = numpy.zeros((441))
+    darkAnimationMap = numpy.zeros((441))
+    font15 = pygame.font.SysFont('Comic Sans MS', 15)
+    font20 = pygame.font.SysFont('Comic Sans MS', 20)
+    font50 = pygame.font.SysFont('Comic Sans MS', 50)
+    font80 = pygame.font.SysFont('Comic Sans MS', 80)
+
 class GAME:
     attSelection = 0
     map = MAP()
     menu = MENU()
     play = False
     next = True
-    darking = False
-    undarking = False
-    darkAnimation = numpy.zeros((441))
-    font15 = pygame.font.SysFont('Comic Sans MS', 15)
-    font20 = pygame.font.SysFont('Comic Sans MS', 20)
-    font50 = pygame.font.SysFont('Comic Sans MS', 50)
-    font80 = pygame.font.SysFont('Comic Sans MS', 80)
-
+    cpu = False
+    details = DETAILS()
 #----------------------------------------------------------------------------------------------------------------------------------------
 def transition_screen(game = GAME()):
-    if(game.darking):
+    if(game.details.darking):
         for i in range(50):
-            game.darkAnimation[random.randint(0,440)] = 1
-    if(game.undarking):
+            game.details.darkAnimation[random.randint(0,440)] = 1
+    if(game.details.undarking):
         for i in range(50):
-            game.darkAnimation[random.randint(0,440)] = 0
+            game.details.darkAnimation[random.randint(0,440)] = 0
     i = 0
     for y in range(-10,10):
         for x in range(-10,10):
-            if(game.darkAnimation[i]==1):
+            if(game.details.darkAnimation[i]==1):
                 Y = y*50+500
                 X = x*50+500
                 pygame.draw.circle(screen,"#000000",(X,Y),65)
             i+=1
-    if(game.darking):
-        for i in game.darkAnimation:
+    if(game.details.darking):
+        for i in game.details.darkAnimation:
             if(i==0):
                 return False
-    if(game.undarking):
-        for i in game.darkAnimation:
+    if(game.details.undarking):
+        for i in game.details.darkAnimation:
             if(i==1):
                 return False
-    if(game.undarking):
-        game.undarking = False
-    if(game.darking):
-        game.darking = False
-        game.undarking = True
+    if(game.details.darking):
+        game.details.darking = False
+    if(game.details.undarking):
+        game.details.undarking = False
     return True
 #----------------------------------------------------------------------------------------------------------------------------------------
 def clear_slot(game = GAME(),y=0,x=0):
@@ -163,13 +167,13 @@ def clear_slot(game = GAME(),y=0,x=0):
 #----------------------------------------------------------------------------------------------------------------------------------------
 def render_inventory(game = GAME()):
     
-    defense_text = game.font20.render(f'Defense: {game.map.player.attributes.defense}', True, (255, 255, 255))
+    defense_text = game.details.font20.render(f'Defense: {game.map.player.attributes.defense}', True, (255, 255, 255))
     screen.blit(defense_text, (210,20))
-    strength_text = game.font20.render(f'strength: {game.map.player.attributes.strength}', True, (255, 255, 255))
+    strength_text = game.details.font20.render(f'strength: {game.map.player.attributes.strength}', True, (255, 255, 255))
     screen.blit(strength_text, (210,45))
-    intelligence_text = game.font20.render(f'Intelligence: {game.map.player.attributes.intelligence}', True, (255, 255, 255))
+    intelligence_text = game.details.font20.render(f'Intelligence: {game.map.player.attributes.intelligence}', True, (255, 255, 255))
     screen.blit(intelligence_text, (210,70))
-    dexterity_text = game.font20.render(f'Dexterity: {game.map.player.attributes.dexterity:.1f}', True, (255, 255, 255))
+    dexterity_text = game.details.font20.render(f'Dexterity: {game.map.player.attributes.dexterity:.1f}', True, (255, 255, 255))
     screen.blit(dexterity_text, (210,90))
 
     pygame.draw.rect(screen,"#1D1D1D",(10,10,190,250))
@@ -321,7 +325,7 @@ def move_monsters(game = GAME()):
             if(monster.attacked):
                 monster.attacked = False
                 pygame.draw.circle(screen,"#FF0000",[X+monster.camPos.x+random.randint(-2,2),Y+monster.camPos.y+random.randint(-2,2)],20)
-            dice_text = game.font15.render(f'{monster.dice}',True,"#ffffff")
+            dice_text = game.details.font15.render(f'{monster.dice}',True,"#ffffff")
             screen.blit(dice_text, (X+monster.camPos.x+random.randint(-1,1)-dice_text.get_size()[0]/2,Y+monster.camPos.y+random.randint(-1,1)-dice_text.get_size()[1]/2))
 
         if(monster.attributes.hp<1):
@@ -331,19 +335,6 @@ def move_monsters(game = GAME()):
                     game.map.key.x = monster.pos.x
                 monster.pos.y = -1
                 monster.pos.x = -1
-                if(monster.id==0 or monster.id==2 or monster.id==4):
-                    upMonster = random.randint(0,len(game.map.monsters)-1)
-                    if(game.map.monsters[upMonster].id==1):
-                        game.map.monsters[upMonster].attributes.hp*=2
-                        game.map.monsters[upMonster].attributes.hpMax*=2
-                        game.map.monsters[upMonster].attributes.defense*=2
-                        game.map.monsters[upMonster].attributes.strength*=2
-                        game.map.monsters[upMonster].attributes.intelligence*=2
-                        game.map.monsters[upMonster].attributes.dexterity*=2
-                if(monster.id==0 or monster.id==1 or monster.id==2 or monster.id==4):
-                    upMonster = random.randint(0,len(game.map.monsters)-1)
-                    if(game.map.monsters[upMonster].id==3):
-                        game.map.monsters[upMonster].attributes.dexterity+=1
                 game.map.player.exp+=random.randint(1,game.map.floor*game.map.player.attributes.intelligence)
                 monster.alive = False
         if(monster.alive):
@@ -517,6 +508,7 @@ def move_monsters(game = GAME()):
                                     game.map.player.inventory[0][1].goBreak = True
                                 game.map.player.inventory[0][1].breakChance+=1
 
+
                         if(game.map.player.inventory[0][2].id==8):
                             if(game.map.player.inventory[0][2].goBreak):
                                 game.map.player.attributes.hpMax-=game.map.player.inventory[0][game.map.player.inventorySelection.x].hp
@@ -541,6 +533,8 @@ def move_monsters(game = GAME()):
                                 if(random.random()<0.1):
                                     game.map.player.inventory[0][2].breakChance+=1
 
+                        if(game.map.player.dice==100):
+                            defense = damage
                         if(defense>=damage):
                             defense = damage
                             if(random.random()<0.5):
@@ -611,14 +605,14 @@ def render_dark(game = GAME()):
             X = x*50+500
             if(game.map.memory[game.map.player.pos.y+y][game.map.player.pos.x+x]==0):
                 if(random.random()<0.5):
-                    game.darkAnimation[inter]+=1
+                    game.details.darkAnimationMap[inter]+=1
                 else:
-                    game.darkAnimation[inter]-=1
-                if(game.darkAnimation[inter]>65):
-                    game.darkAnimation[inter] = 65
-                if(game.darkAnimation[inter]<35):
-                    game.darkAnimation[inter] = 35
-                size = game.darkAnimation[inter]
+                    game.details.darkAnimationMap[inter]-=1
+                if(game.details.darkAnimationMap[inter]>65):
+                    game.details.darkAnimationMap[inter] = 65
+                if(game.details.darkAnimationMap[inter]<35):
+                    game.details.darkAnimationMap[inter] = 35
+                size = game.details.darkAnimationMap[inter]
                 pygame.draw.circle(screen,"#000000",[X+25,Y+25],size)
                 if(game.map.player.attributes.hpMax<1):
                     game.map.player.attributes.hpMax = 1
@@ -651,10 +645,10 @@ def render_interface(game = GAME()):
                 damageObject.pos.x+=random.randint(-1,1)
 
     if(game.map.player.attributes.hp>=1):
-        floor_text = game.font20.render(f'Floor {game.map.floor}',True,"#ffffff")
+        floor_text = game.details.font20.render(f'Floor {game.map.floor}',True,"#ffffff")
         screen.blit(floor_text, (900,950))
 
-        dice_text = game.font20.render(f'{game.map.player.dice}',True,"#000000")
+        dice_text = game.details.font20.render(f'{game.map.player.dice}',True,"#000000")
         screen.blit(dice_text, (game.map.player.camPos.x+random.randint(-1,1)-dice_text.get_size()[0]/2,game.map.player.camPos.y+random.randint(-1,1)-dice_text.get_size()[1]/2))
 
         hpBar = (game.map.player.attributes.hp/game.map.player.attributes.hpMax)*200
@@ -672,10 +666,10 @@ def render_interface(game = GAME()):
 
         if(game.map.player.attributes.hp>game.map.player.attributes.hpMax):
             game.map.player.attributes.hp = game.map.player.attributes.hpMax
-        hpValue_text = game.font20.render(f'{game.map.player.attributes.hp} / {game.map.player.attributes.hpMax}',True,"#000000")
+        hpValue_text = game.details.font20.render(f'{game.map.player.attributes.hp} / {game.map.player.attributes.hpMax}',True,"#000000")
         if(game.map.player.exp>game.map.player.nextExp):
             game.map.player.exp = game.map.player.nextExp
-        expValue_text = game.font20.render(f'{game.map.player.exp} / {game.map.player.nextExp}',True,"#000000")
+        expValue_text = game.details.font20.render(f'{game.map.player.exp} / {game.map.player.nextExp}',True,"#000000")
         screen.blit(hpValue_text, (890-hpValue_text.get_size()[0]/2,19-hpValue_text.get_size()[1]/2))
         screen.blit(expValue_text, (890-expValue_text.get_size()[0]/2,44-expValue_text.get_size()[1]/2))
         if(game.map.player.inventoryOpened):
@@ -728,15 +722,15 @@ def render_interface(game = GAME()):
                     pygame.draw.polygon(screen, "#D0D0D0", [(x+25, y+9),(x+35, y+16),(x+33, y+30),(x+25, y+39),(x+17, y+30),(x+15, y+16)])
                     pygame.draw.line(screen, "#FFFFFF", (x+18, y+12), (x+25, y+38), 2)
                 if(game.map.player.inventory[0][i].id!=0):
-                    breakChance_text = game.font20.render(f'{game.map.player.inventory[0][i].breakChance}%',True,"#FFFFFF")
+                    breakChance_text = game.details.font20.render(f'{game.map.player.inventory[0][i].breakChance}%',True,"#FFFFFF")
                     if(game.map.player.inventory[0][i].goBreak):
-                        breakChance_text = game.font20.render(f'{game.map.player.inventory[0][i].breakChance}%',True,"#FF0000")
+                        breakChance_text = game.details.font20.render(f'{game.map.player.inventory[0][i].breakChance}%',True,"#FF0000")
                     screen.blit(breakChance_text, (x+25-breakChance_text.get_size()[0]/2+random.randint(-1,1), y+60-breakChance_text.get_size()[1]/2+random.randint(-1,1)))
                 if(game.map.player.inventory[0][i].cursed and game.map.player.inventory[0][i].reveled):
                     pygame.draw.circle(screen,"#FF0000",[x+random.randint(10,40),y+random.randint(10,40)],random.randint(1,10))
                 x+=60
     else:
-        floor_text = game.font20.render(f'{game.map.floor}',True,"#000000")
+        floor_text = game.details.font20.render(f'{game.map.floor}',True,"#000000")
         screen.blit(floor_text, (game.map.player.camPos.x+random.randint(-1,1)-floor_text.get_size()[0]/2,game.map.player.camPos.y+random.randint(-1,1)-floor_text.get_size()[1]/2))
         if(game.map.player.inventory[0][2].id==9):
             pygame.draw.rect(screen, "#FFD700", (525+22, 850+8, 6, 28)) 
@@ -744,9 +738,9 @@ def render_interface(game = GAME()):
             pygame.draw.rect(screen, "#FFD700", (525+18, 850+36, 14, 5))
             pygame.draw.rect(screen, "#FFFFFF", (525+20, 850+15, 10, 6))
             pygame.draw.rect(screen, "#FFF3A0", (525+20, 850+5, 10, 3)) 
-            breakChance_text = game.font20.render(f'{game.map.player.inventory[0][2].breakChance}%',True,"#FFFFFF")
+            breakChance_text = game.details.font20.render(f'{game.map.player.inventory[0][2].breakChance}%',True,"#FFFFFF")
             if(game.map.player.inventory[0][2].goBreak):
-                breakChance_text = game.font20.render(f'{game.map.player.inventory[0][2].breakChance}%',True,"#FF0000")
+                breakChance_text = game.details.font20.render(f'{game.map.player.inventory[0][2].breakChance}%',True,"#FF0000")
             screen.blit(breakChance_text, (525+25-breakChance_text.get_size()[0]/2+random.randint(-1,1), 850+60-breakChance_text.get_size()[1]/2+random.randint(-1,1)))
             if(time.perf_counter()-game.map.player.clockSpeed>0.25):
                 game.map.player.clockSpeed = time.perf_counter()
@@ -772,7 +766,7 @@ def render_interface(game = GAME()):
                             game.map.player.inventory[0][2].goBreak = True
                         game.map.player.inventory[0][2].breakChance+=1
         else:
-            continue_text = game.font50.render("'ESC' to continue", True, "#FF0000")
+            continue_text = game.details.font50.render("'ESC' to continue", True, "#FF0000")
             screen.blit(continue_text, (500-continue_text.get_size()[0]/2+random.randint(-1,1),850-continue_text.get_size()[1]/2+random.randint(-1,1)))
 #----------------------------------------------------------------------------------------------------------------------------------------
 def move_player(game = GAME()):
@@ -865,8 +859,8 @@ def move_player(game = GAME()):
                 if(not game.map.player.inventoryOpened):
                     if(game.map.player.key):
                         if(game.map.tiles[game.map.player.pos.y][game.map.player.pos.x]==2):
-                            game.next = True
-                            game.darking = True
+                            game.details.darking = True
+                            game.details.undarking = False
                 else:
                     if(game.map.player.inventoryOpened):
                         if(game.map.player.inventory[game.map.player.inventorySelection.y][game.map.player.inventorySelection.x].id==1):
@@ -1021,17 +1015,24 @@ def move_player(game = GAME()):
                                     game.map.player.inventory[0][0].breakChance+=1
                                 
                         if(game.map.player.inventory[0][0].id==11):
-                            damage+=game.map.player.attributes.intelligence
+                            if(game.map.player.inventory[0][0].cursed):
+                                damage-=game.map.player.attributes.intelligence
+                            else:
+                                damage+=game.map.player.attributes.intelligence
                             if(game.map.player.inventory[0][0].goBreak):
                                 clear_slot(game,0,0)
                             else:
                                 if(random.random()<game.map.player.inventory[0][0].breakChance/100):
                                     game.map.player.inventory[0][0].goBreak = True
                                 game.map.player.inventory[0][0].breakChance+=1
+                                if(random.random()<0.5):
+                                    game.map.player.inventory[0][0].breakChance+=1
 
                         if(random.random()<0.5):
                             damage+=game.map.player.attributes.intelligence
                         defense = int(monster.attributes.defense*(monster.dice/100))
+                        if(monster.dice==100):
+                            defense = damage
                         if(random.random()<0.5):
                             defense+=game.map.player.attributes.intelligence
                         if(defense>damage):
@@ -1039,6 +1040,8 @@ def move_player(game = GAME()):
                             if(random.random()<0.5):
                                 defense = damage-1
                         monster.attributes.hp-=(damage-defense)
+                        if(monster.id==3):
+                            monster.attributes.dexterity+=0.1
                         if(defense<damage):
                             monster.dice = random.randint(1,100)
                         monster.attacked = True
@@ -1182,10 +1185,10 @@ def render_game(game = GAME()):
 def put_attributes(game = GAME()):
     global running
     game.map.player.clockSpeed = time.perf_counter()
-    game.darking = False
-    game.undarking = True
+    game.details.darking = False
+    game.details.undarking = True
     for i in range(441):
-        game.darkAnimation[i]==1
+        game.details.darkAnimation[i]==1
     while(running):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -1198,45 +1201,45 @@ def put_attributes(game = GAME()):
                 X = x*50+500
                 if(random.random()<0.1):
                     pygame.draw.circle(screen,"#161616",[X+random.randint(10,40),Y+random.randint(10,40)],random.randint(1,10))
-        points_text = game.font50.render(f'ATTRIBUTES POINTS: {game.map.player.attPoints}', True, "#1EFF00")
+        points_text = game.details.font50.render(f'ATTRIBUTES POINTS: {game.map.player.attPoints}', True, "#1EFF00")
         if(game.map.player.attPoints<=0):
-            points_text = game.font50.render(f'ATTRIBUTES POINTS: {game.map.player.attPoints}', True, "#FF0000")
+            points_text = game.details.font50.render(f'ATTRIBUTES POINTS: {game.map.player.attPoints}', True, "#FF0000")
         screen.blit(points_text, (500-points_text.get_size()[0]/2+random.randint(-1,1),100-points_text.get_size()[1]/2+random.randint(-1,1)))
         if(game.attSelection==0):
-            hp_text = game.font50.render(f'> HP: {game.map.player.attributes.hp} / {game.map.player.attributes.hpMax}', True, "#FFF67B")
+            hp_text = game.details.font50.render(f'> HP: {game.map.player.attributes.hp} / {game.map.player.attributes.hpMax}', True, "#FFF67B")
             screen.blit(hp_text, (500-hp_text.get_size()[0]/2+random.randint(-1,1),250-hp_text.get_size()[1]/2+random.randint(-1,1)))
         else:
-            hp_text = game.font50.render(f'HP: {game.map.player.attributes.hp} / {game.map.player.attributes.hpMax}', True, "#FFFFFF")
+            hp_text = game.details.font50.render(f'HP: {game.map.player.attributes.hp} / {game.map.player.attributes.hpMax}', True, "#FFFFFF")
             screen.blit(hp_text, (500-hp_text.get_size()[0]/2,250-hp_text.get_size()[1]/2))
         if(game.attSelection==1):
-            defense_text = game.font50.render(f'> DEFENSE: {game.map.player.attributes.defense}', True, "#FFF67B")
+            defense_text = game.details.font50.render(f'> DEFENSE: {game.map.player.attributes.defense}', True, "#FFF67B")
             screen.blit(defense_text, (500-defense_text.get_size()[0]/2+random.randint(-1,1),350-defense_text.get_size()[1]/2+random.randint(-1,1)))
         else:
-            defense_text = game.font50.render(f'DEFENSE: {game.map.player.attributes.defense}', True, "#FFFFFF")
+            defense_text = game.details.font50.render(f'DEFENSE: {game.map.player.attributes.defense}', True, "#FFFFFF")
             screen.blit(defense_text, (500-defense_text.get_size()[0]/2,350-defense_text.get_size()[1]/2))
         if(game.attSelection==2):
-            strength_text = game.font50.render(f'> STRENGTH: {game.map.player.attributes.strength}', True, "#FFF67B")
+            strength_text = game.details.font50.render(f'> STRENGTH: {game.map.player.attributes.strength}', True, "#FFF67B")
             screen.blit(strength_text, (500-strength_text.get_size()[0]/2+random.randint(-1,1),450-strength_text.get_size()[1]/2+random.randint(-1,1)))
         else:
-            strength_text = game.font50.render(f'STRENGTH: {game.map.player.attributes.strength}', True, "#FFFFFF")
+            strength_text = game.details.font50.render(f'STRENGTH: {game.map.player.attributes.strength}', True, "#FFFFFF")
             screen.blit(strength_text, (500-strength_text.get_size()[0]/2,450-strength_text.get_size()[1]/2))
         if(game.attSelection==3):
-            intelligence_text = game.font50.render(f'> INTELLIGENCE: {game.map.player.attributes.intelligence}', True, "#FFF67B")
+            intelligence_text = game.details.font50.render(f'> INTELLIGENCE: {game.map.player.attributes.intelligence}', True, "#FFF67B")
             screen.blit(intelligence_text, (500-intelligence_text.get_size()[0]/2+random.randint(-1,1),550-intelligence_text.get_size()[1]/2+random.randint(-1,1)))
         else:
-            intelligence_text = game.font50.render(f'INTELLIGENCE: {game.map.player.attributes.intelligence}', True, "#FFFFFF")
+            intelligence_text = game.details.font50.render(f'INTELLIGENCE: {game.map.player.attributes.intelligence}', True, "#FFFFFF")
             screen.blit(intelligence_text, (500-intelligence_text.get_size()[0]/2,550-intelligence_text.get_size()[1]/2))
         if(game.attSelection==4):
-            dexterity_text = game.font50.render(f'> DEXTERITY: {game.map.player.attributes.dexterity:.1f}', True, "#FFF67B")
+            dexterity_text = game.details.font50.render(f'> DEXTERITY: {game.map.player.attributes.dexterity:.1f}', True, "#FFF67B")
             screen.blit(dexterity_text, (500-dexterity_text.get_size()[0]/2+random.randint(-1,1),650-dexterity_text.get_size()[1]/2+random.randint(-1,1)))
         else:
-            dexterity_text = game.font50.render(f'DEXTERITY: {game.map.player.attributes.dexterity:.1f}', True, "#FFFFFF")
+            dexterity_text = game.details.font50.render(f'DEXTERITY: {game.map.player.attributes.dexterity:.1f}', True, "#FFFFFF")
             screen.blit(dexterity_text, (500-dexterity_text.get_size()[0]/2,650-dexterity_text.get_size()[1]/2))
         if(game.attSelection==5):
-            continue_text = game.font50.render(f'> CONTINUE', True, "#FFF67B")
+            continue_text = game.details.font50.render(f'> CONTINUE', True, "#FFF67B")
             screen.blit(continue_text, (500-continue_text.get_size()[0]/2+random.randint(-1,1),900-continue_text.get_size()[1]/2+random.randint(-1,1)))
         else:
-            continue_text = game.font50.render(f'CONTINUE', True, "#FFFFFF")
+            continue_text = game.details.font50.render(f'CONTINUE', True, "#FFFFFF")
             screen.blit(continue_text, (500-continue_text.get_size()[0]/2,900-continue_text.get_size()[1]/2))
         if(time.perf_counter()-game.map.player.clockSpeed>0.2):
             if(keyboard.is_pressed('w')):
@@ -1247,7 +1250,7 @@ def put_attributes(game = GAME()):
                 game.map.player.clockSpeed = time.perf_counter()
                 if(game.attSelection<5):
                     game.attSelection+=1
-            if(keyboard.is_pressed('enter') or game.darking):
+            if(keyboard.is_pressed('enter') or game.details.darking):
                 game.map.player.clockSpeed = time.perf_counter()
                 if(game.map.player.attPoints>0):
                     if(game.attSelection==0):
@@ -1270,12 +1273,12 @@ def put_attributes(game = GAME()):
                         if(game.map.player.attPoints>=int(game.map.player.attributes.dexterity)):
                             game.map.player.attPoints-=int(game.map.player.attributes.dexterity)
                             game.map.player.attributes.dexterity+=0.1
-                if(game.attSelection==5 or game.darking):
-                    game.darking = True
+                if(game.attSelection==5 or game.details.darking):
+                    game.details.darking = True
 
-        if(game.undarking):
+        if(game.details.undarking):
             transition_screen(game)
-        if(game.darking):
+        if(game.details.darking):
             if(transition_screen(game)):
                 break
         pygame.display.flip()
@@ -1457,31 +1460,33 @@ def menu(game = GAME()):
             X = x*50+500
             if(random.random()<0.1):
                 pygame.draw.circle(screen,"#161616",[X+random.randint(10,40),Y+random.randint(10,40)],random.randint(1,10))
-    title_text = game.font80.render('DUNGEONS OF SIN',True,"#FFFFFF")
+    title_text = game.details.font80.render('DUNGEONS OF SIN',True,"#FFFFFF")
     screen.blit(title_text, ((500-title_text.get_size()[0]/2)+random.randint(-1,1),(250-title_text.get_size()[1]/2)+random.randint(-1,1)))
     if game.menu.selection==0:
-        play_text = game.font50.render('> PLAY', True, "#FFF67B")
+        play_text = game.details.font50.render('> PLAY', True, "#FFF67B")
         screen.blit(play_text, ((500-play_text.get_size()[0]/2)+random.randint(-2,2),(450-play_text.get_size()[1]/2)+random.randint(-2,2)))
     else:
-        play_text = game.font50.render('  PLAY', True, "#FFFFFF")
+        play_text = game.details.font50.render('  PLAY', True, "#FFFFFF")
         screen.blit(play_text, ((500-play_text.get_size()[0]/2),(450-play_text.get_size()[1]/2)))
     if game.menu.selection==1:
-        exit_text = game.font50.render('> EXIT', True, "#FFF67B")
+        exit_text = game.details.font50.render('> EXIT', True, "#FFF67B")
         screen.blit(exit_text, ((500-exit_text.get_size()[0]/2)+random.randint(-2,2),(550-exit_text.get_size()[1]/2)+random.randint(-2,2)))
     else:
-        exit_text = game.font50.render('  EXIT', True, "#FFFFFF")
+        exit_text = game.details.font50.render('  EXIT', True, "#FFFFFF")
         screen.blit(exit_text, ((500-exit_text.get_size()[0]/2),(550-exit_text.get_size()[1]/2)))
     
-    version_text = game.font50.render('V 0.3.6', True, "#505050")
+    version_text = game.details.font50.render('V 0.3.6', True, "#505050")
     screen.blit(version_text, ((900-version_text.get_size()[0]/2),(900-version_text.get_size()[1]/2)))
 
-    if(not game.darking):
+    if(not game.details.darking):
         if(keyboard.is_pressed('w')):
             game.menu.selection = 0
         if(keyboard.is_pressed('s')):
             game.menu.selection = 1
-    if(keyboard.is_pressed('enter') or game.darking):
-        game.darking = True
+        if(keyboard.is_pressed('c')):
+            game.cpu = not game.cpu
+    if(keyboard.is_pressed('enter') or game.details.darking):
+        game.details.darking = True
         if(transition_screen(game)):
             if game.menu.selection == 1:
                 running = False
@@ -1493,16 +1498,21 @@ def play(game = GAME()):
         game.map.floor+=1
         game.map.player.key = False
         game.map.player.firstAtt = True
+        game.attSelection = 0
         put_attributes(game)
-        if(running==False):
+        if(not running):
             return 0
         create_map(game)
+        game.details.darkAnimation = numpy.zeros((441))
         game.next = False
     render_game(game)
     move_player(game)
     move_monsters(game)
     render_dark(game)
     render_interface(game)
+    if(game.details.darking):
+        if(transition_screen(game)):
+            game.next = True
 #----------------------------------------------------------------------------------------------------------------------------------------
 
 game = GAME()
