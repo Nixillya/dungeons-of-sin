@@ -110,6 +110,7 @@ class GAME:
     play = False
     next = True
     darking = False
+    undarking = False
     darkAnimation = numpy.zeros((441))
     font15 = pygame.font.SysFont('Comic Sans MS', 15)
     font20 = pygame.font.SysFont('Comic Sans MS', 20)
@@ -118,17 +119,33 @@ class GAME:
 
 #----------------------------------------------------------------------------------------------------------------------------------------
 def transition_screen(game = GAME()):
-    for i in range(50):
-        game.darkAnimation[random.randint(0,440)] = 1
+    if(game.darking):
+        for i in range(50):
+            game.darkAnimation[random.randint(0,440)] = 1
+    if(game.undarking):
+        for i in range(50):
+            game.darkAnimation[random.randint(0,440)] = 0
     i = 0
     for y in range(-10,10):
         for x in range(-10,10):
             if(game.darkAnimation[i]==1):
-                pygame.draw.circle(screen,"#000000",(500+x*50,500+y*50),50+random.randint(-10,10))
+                Y = y*50+500
+                X = x*50+500
+                pygame.draw.circle(screen,"#000000",(X,Y),65)
             i+=1
-    for i in game.darkAnimation:
-        if(i==0):
-            return False
+    if(game.darking):
+        for i in game.darkAnimation:
+            if(i==0):
+                return False
+    if(game.undarking):
+        for i in game.darkAnimation:
+            if(i==1):
+                return False
+    if(game.undarking):
+        game.undarking = False
+    if(game.darking):
+        game.darking = False
+        game.undarking = True
     return True
 #----------------------------------------------------------------------------------------------------------------------------------------
 def clear_slot(game = GAME(),y=0,x=0):
@@ -603,8 +620,12 @@ def render_dark(game = GAME()):
                     game.darkAnimation[inter] = 35
                 size = game.darkAnimation[inter]
                 pygame.draw.circle(screen,"#000000",[X+25,Y+25],size)
+                if(game.map.player.attributes.hpMax<1):
+                    game.map.player.attributes.hpMax = 1
+                    game.map.player.attributes.hp = 1
                 chance = ((game.map.player.attributes.hpMax-game.map.player.attributes.hp)/(game.map.player.attributes.hpMax))/100
                 if(random.random()<chance):
+                    pygame.draw.circle(screen,"#161616",[X+random.randint(10,40),Y+random.randint(10,40)],random.randint(1,10))
                     j = random.randint(-11-game.map.player.attributes.intelligence,11+game.map.player.attributes.intelligence)
                     i = random.randint(-11-game.map.player.attributes.intelligence,11+game.map.player.attributes.intelligence)
                     for j1 in range(-1,2):
@@ -845,6 +866,7 @@ def move_player(game = GAME()):
                     if(game.map.player.key):
                         if(game.map.tiles[game.map.player.pos.y][game.map.player.pos.x]==2):
                             game.next = True
+                            game.darking = True
                 else:
                     if(game.map.player.inventoryOpened):
                         if(game.map.player.inventory[game.map.player.inventorySelection.y][game.map.player.inventorySelection.x].id==1):
@@ -1160,6 +1182,10 @@ def render_game(game = GAME()):
 def put_attributes(game = GAME()):
     global running
     game.map.player.clockSpeed = time.perf_counter()
+    game.darking = False
+    game.undarking = True
+    for i in range(441):
+        game.darkAnimation[i]==1
     while(running):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -1221,7 +1247,7 @@ def put_attributes(game = GAME()):
                 game.map.player.clockSpeed = time.perf_counter()
                 if(game.attSelection<5):
                     game.attSelection+=1
-            if(keyboard.is_pressed('enter')):
+            if(keyboard.is_pressed('enter') or game.darking):
                 game.map.player.clockSpeed = time.perf_counter()
                 if(game.map.player.attPoints>0):
                     if(game.attSelection==0):
@@ -1244,17 +1270,18 @@ def put_attributes(game = GAME()):
                         if(game.map.player.attPoints>=int(game.map.player.attributes.dexterity)):
                             game.map.player.attPoints-=int(game.map.player.attributes.dexterity)
                             game.map.player.attributes.dexterity+=0.1
-                if(game.attSelection==5):
-                    break
+                if(game.attSelection==5 or game.darking):
+                    game.darking = True
+
+        if(game.undarking):
+            transition_screen(game)
+        if(game.darking):
+            if(transition_screen(game)):
+                break
         pygame.display.flip()
         clock.tick(60)
 #----------------------------------------------------------------------------------------------------------------------------------------
 def create_map(game = GAME()):
-    screen.fill("black")
-    loading_text = game.font50.render('Loading...', True, (255, 255, 255))
-    screen.blit(loading_text, (500-loading_text.get_size()[0]/2,500-loading_text.get_size()[1]/2))
-    pygame.display.flip()
-
     game.map.player.key = False
     mapY = 500
     mapX = 500
@@ -1424,8 +1451,8 @@ def create_map(game = GAME()):
 def menu(game = GAME()):
     global running
     screen.fill("black")
-    for y in range(-10,10,1):
-        for x in range(-10,10,1):
+    for y in range(-10,10):
+        for x in range(-10,10):
             Y = y*50+500
             X = x*50+500
             if(random.random()<0.1):
@@ -1455,9 +1482,7 @@ def menu(game = GAME()):
             game.menu.selection = 1
     if(keyboard.is_pressed('enter') or game.darking):
         game.darking = True
-        success = transition_screen(game)
-        if(success):
-            game.darkAnimation = numpy.zeros((441))
+        if(transition_screen(game)):
             if game.menu.selection == 1:
                 running = False
             if game.menu.selection == 0:
