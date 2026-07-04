@@ -280,6 +280,11 @@ def render_inventory(game = GAME()):
         y+=60
         x = 20
 #----------------------------------------------------------------------------------------------------------------------------------------
+def change_dice(dice):
+    if(random.random()<0.5):
+        dice = random.randint(1,100)
+    return dice
+#----------------------------------------------------------------------------------------------------------------------------------------
 def move_monsters(game = GAME()):
     for monster in game.map.monsters:
         Y = 525
@@ -415,7 +420,7 @@ def move_monsters(game = GAME()):
                                     game.map.damagesView[objectView].pos.x = random.randint(250,750)
                                     game.map.damagesView[objectView].size = 50
                                     direction = -1
-                                    game.map.player.dice = random.randint(1,100)
+                                    game.map.player.dice = change_dice(game.map.player.dice)
                                     if(game.map.player.inventory[0][2].id==10):
                                         if(game.map.player.inventory[0][2].goBreak):
                                             game.map.player.attributes.hp = game.map.player.attributes.hpMax
@@ -545,7 +550,7 @@ def move_monsters(game = GAME()):
                         pygame.draw.circle(screen,"#ff0000",[525+random.randint(-1,1),525+random.randint(-1,1)],20)
                         game.map.player.attributes.hp-=(damage-defense)
                         if(defense<damage):
-                            game.map.player.dice = random.randint(1,100)
+                            game.map.player.dice = change_dice(game.map.player.dice)
                         if(monster.id==4):
                             if(random.random()<0.75):
                                 debuff = random.randint(0,2)
@@ -567,7 +572,7 @@ def move_monsters(game = GAME()):
                         game.map.damagesView[objectView].pos.y = random.randint(250,750)
                         game.map.damagesView[objectView].pos.x = random.randint(250,750)
                         game.map.damagesView[objectView].size = 50
-                        monster.dice = random.randint(1,100)
+                        monster.dice = change_dice(monster.dice)
                 for otherMonster in game.map.monsters:
                     if(otherMonster==monster):
                         continue
@@ -594,7 +599,7 @@ def move_monsters(game = GAME()):
                         monster.camPos.x+=15
                 else:
                     if(direction!=-1):
-                        monster.dice = random.randint(1,100)
+                        monster.dice = change_dice(monster.dice)
     game.map.player.keyInput = 0
 #----------------------------------------------------------------------------------------------------------------------------------------
 def render_dark(game = GAME()):
@@ -1043,7 +1048,7 @@ def move_player(game = GAME()):
                         if(monster.id==3):
                             monster.attributes.dexterity+=0.1
                         if(defense<damage):
-                            monster.dice = random.randint(1,100)
+                            monster.dice = change_dice(monster.dice)
                         monster.attacked = True
                         objectView = random.randint(0,49)
 
@@ -1052,7 +1057,7 @@ def move_player(game = GAME()):
                         game.map.damagesView[objectView].pos.y = random.randint(250,750)
                         game.map.damagesView[objectView].pos.x = random.randint(250,750)
                         game.map.damagesView[objectView].size = 50
-                        game.map.player.dice = random.randint(1,100)
+                        game.map.player.dice = change_dice(game.map.player.dice)
                 for item in game.map.items:
                     if(game.map.player.pos.y==item.y and game.map.player.pos.x==item.x):
                         successInv = False
@@ -1093,7 +1098,7 @@ def move_player(game = GAME()):
                         game.map.player.camPos.x+=50
                     if(game.map.player.keyInput==4):
                         game.map.player.camPos.x-=50
-                    game.map.player.dice = random.randint(1,100)
+                    game.map.player.dice = change_dice(game.map.player.dice)
                 else:
                     game.map.player.pos.y-=target.y
                     game.map.player.pos.x-=target.x
@@ -1371,7 +1376,7 @@ def create_map(game = GAME()):
                         break
             if(fail):
                 continue
-            monster.id = random.randint(0,4)
+            monster.id = random.randint(0,5)
             monster.attributes.hpMax = random.randint(1,10)
             monster.attributes.defense = random.randint(1,10)
             monster.attributes.strength = random.randint(1,10)
@@ -1411,7 +1416,7 @@ def create_map(game = GAME()):
                         monster.attributes.strength = game.map.floor
                         monster.attributes.intelligence = 1
                         monster.attributes.dexterity = 1
-                    if(monster.id==5):
+                    if(monster.id==4):
                         monster.attributes.hpMax = game.map.floor
                         monster.attributes.defense = game.map.floor
                         monster.attributes.strength = game.map.floor
@@ -1513,7 +1518,7 @@ def play(game = GAME()):
     if(game.details.darking):
         if(transition_screen(game)):
             game.next = True
-#----------------------------------------------------------------------------------------------------------------------------------------
+  #----------------------------------------------------------------------------------------------------------------------------------------
 
 game = GAME()
 while running:
