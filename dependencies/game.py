@@ -1,7 +1,6 @@
 import pygame
 import numpy
 import random
-import keyboard
 import time
 
 pygame.init()
@@ -84,9 +83,10 @@ class MONSTER:
         self.camPos = POS()
         self.attributes = ATTRIBUTES()
         self.dice = random.randint(1,100)
+        self.hide = False
 class DAMAGESVIEW:
-    def __init__(self):
-        self.value = 0
+    def __init__(self): 
+        self.value = 0  
         self.id = 0
         self.pos = POS()
         self.size = 0
@@ -122,6 +122,17 @@ class GAME:
     next = True
     cpu = False
     details = DETAILS()
+
+class INPUT:
+    w = False
+    a = False
+    s = False
+    d = False
+    q = False
+    i = False
+    enter = False
+    esc = False
+
 #----------------------------------------------------------------------------------------------------------------------------------------
 def transition_screen(game = GAME()):
     if(game.details.darking):
@@ -802,7 +813,8 @@ def move_player(game = GAME()):
     if(game.map.player.attributes.hp<1):
         game.map.player.attributes.hp = 0
         if(game.map.player.inventory[0][2].id!=9):
-            if(keyboard.is_pressed('esc')):
+            key = pygame.key.get_pressed()
+            if(key[pygame.K_ESCAPE]):
                 game.play = False
             game.map.player.attributes.intelligence = 1
     else:
@@ -824,42 +836,107 @@ def move_player(game = GAME()):
                 else:
                     game.map.player.attributes.hp+=game.map.floor
                 game.map.player.nextExp+=random.randint(1,game.map.floor*2)
-            if(keyboard.is_pressed('w')):
+            input = INPUT()            
+            if(not game.cpu):
+                key = pygame.key.get_pressed()
+                input.w = key[pygame.K_w]
+                input.a = key[pygame.K_a]
+                input.s = key[pygame.K_s]
+                input.d = key[pygame.K_d]
+                input.q = key[pygame.K_q]
+                input.i = key[pygame.K_i]
+                input.enter = key[pygame.K_RETURN]
+                input.esc = key[pygame.K_ESCAPE]
+            else:
+                success = False
+                cpu = [False,False,False,False,False,False,False,]
+                for keyR in range(4):
+                    fail = False
+                    y = 0
+                    x = 0
+                    for j in range(game.map.player.attributes.intelligence):
+                        for i in range(game.map.player.attributes.intelligence):
+                            if(not success and not fail):
+                                if(random.random()<0.5):
+                                    if(random.random()<0.5):
+                                        y+=1
+                                    else:
+                                        y-=1
+                                else:
+                                    if(random.random()<0.5):
+                                        x+=1
+                                    else:
+                                        x-=1
+                                if(game.map.tiles[game.map.player.pos.y+y][game.map.player.pos.x+x]==0):
+                                    fail = True
+                                    break
+                                for monster in game.map.monsters:
+                                    if(monster.pos.y==game.map.player.pos.y+y and monster.pos.x==game.map.player.pos.x+x):
+                                        cpu[keyR] = True
+                                        success = True
+                                        break
+                                for item in game.map.items:
+                                    if(item.y==game.map.player.pos.y+y and item.x==game.map.player.pos.x+x):
+                                        cpu[keyR] = True
+                                        success = True
+                                        break
+                                if(game.map.player.key):
+                                    if(game.map.tiles[game.map.player.pos.y+y][game.map.player.pos.x+x]==2):
+                                        cpu[keyR] = True
+                                        success = True
+                                        break
+                                else:
+                                    if(game.map.player.pos.y+y==game.map.key.y and game.map.player.pos.x+x==game.map.key.x):
+                                        cpu[keyR] = True
+                                        success = True
+                                        break
+                                if(game.map.tiles[game.map.player.pos.y+y][game.map.player.pos.x+x]==4):
+                                    fail = True
+                                    break
+                if(not success):
+                    cpu[random.randint(0,6)] = True
+                input.w = cpu[0]
+                input.a = cpu[1]
+                input.s = cpu[2]
+                input.d = cpu[3]
+                input.q = cpu[4]
+                input.enter = cpu[6]
+            if(input.w):
                 clock = True
                 if(not game.map.player.inventoryOpened):
                     game.map.player.keyInput = 1
                     target.y-=1
                 else:
                     game.map.player.inventorySelection.y-=1
-            if(keyboard.is_pressed('s')):
+            if(input.s):
                 clock = True
                 if(not game.map.player.inventoryOpened):
                     game.map.player.keyInput = 2
                     target.y+=1
                 else:
                     game.map.player.inventorySelection.y+=1
-            if(keyboard.is_pressed('a')):
+            if(input.a):
                 clock = True
                 if(not game.map.player.inventoryOpened):
                     game.map.player.keyInput = 3
                     target.x-=1
                 else:
                     game.map.player.inventorySelection.x-=1
-            if(keyboard.is_pressed('d')):
+            if(input.d):
                 clock = True
                 if(not game.map.player.inventoryOpened):
                     game.map.player.keyInput = 4
                     target.x+=1
                 else:
                     game.map.player.inventorySelection.x+=1
-            if(keyboard.is_pressed('q')):
+            if(input.q):
                 clock = True
                 if(game.map.player.inventoryOpened):
                     if(game.map.player.inventorySelection.y!=0):
                         if(game.map.player.inventory[game.map.player.inventorySelection.y][game.map.player.inventorySelection.x].id!=0):
                             clear_slot(game,game.map.player.inventorySelection.y,game.map.player.inventorySelection.x)
                             game.map.player.exp+=random.randint(1,game.map.floor*game.map.player.attributes.intelligence)
-            if(keyboard.is_pressed('enter')):
+            if(input.enter):
                 clock = True
                 if(not game.map.player.inventoryOpened):
                     if(game.map.player.key):
@@ -981,7 +1058,7 @@ def move_player(game = GAME()):
                                                 game.map.player.inventory[y][x].goBreak = game.map.player.inventory[game.map.player.inventorySelection.y][game.map.player.inventorySelection.x].goBreak
                                                 success = True
                                 clear_slot(game,0,game.map.player.inventorySelection.x)
-            if(keyboard.is_pressed('i')):
+            if(input.i):
                 clock = True
                 if(game.map.player.inventoryOpened==False):
                     game.map.player.inventoryOpened = True
@@ -1200,6 +1277,20 @@ def put_attributes(game = GAME()):
                 running = False
                 break
         screen.fill("black")
+
+        input = INPUT()            
+        if(not game.cpu):
+            key = pygame.key.get_pressed()
+            input.w = key[pygame.K_w]
+            input.s = key[pygame.K_s]
+            input.enter = key[pygame.K_RETURN]
+        else:
+            cpu = [True,False,False]
+            random.shuffle(cpu)
+            input.w = cpu[0]
+            input.s = cpu[1]
+            input.enter = cpu[2]
+
         for y in range(-10,10,1):
             for x in range(-10,10,1):
                 Y = y*50+500
@@ -1247,15 +1338,16 @@ def put_attributes(game = GAME()):
             continue_text = game.details.font50.render(f'CONTINUE', True, "#FFFFFF")
             screen.blit(continue_text, (500-continue_text.get_size()[0]/2,900-continue_text.get_size()[1]/2))
         if(time.perf_counter()-game.map.player.clockSpeed>0.2):
-            if(keyboard.is_pressed('w')):
+            key = pygame.key.get_pressed()
+            if(input.w):
                 game.map.player.clockSpeed = time.perf_counter()
                 if(game.attSelection>0):
                     game.attSelection-=1
-            if(keyboard.is_pressed('s')):
+            if(input.s):
                 game.map.player.clockSpeed = time.perf_counter()
                 if(game.attSelection<5):
                     game.attSelection+=1
-            if(keyboard.is_pressed('enter') or game.details.darking):
+            if(input.enter or game.details.darking):
                 game.map.player.clockSpeed = time.perf_counter()
                 if(game.map.player.attPoints>0):
                     if(game.attSelection==0):
@@ -1483,14 +1575,19 @@ def menu(game = GAME()):
     version_text = game.details.font50.render('V 0.3.6', True, "#505050")
     screen.blit(version_text, ((900-version_text.get_size()[0]/2),(900-version_text.get_size()[1]/2)))
 
+    if(game.cpu):
+        cpu_text = game.details.font50.render('CPU', True, "#505050")
+        screen.blit(cpu_text, ((100-cpu_text.get_size()[0]/2),(900-cpu_text.get_size()[1]/2)))
+
+    key = pygame.key.get_pressed()
     if(not game.details.darking):
-        if(keyboard.is_pressed('w')):
+        if(key[pygame.K_w]):
             game.menu.selection = 0
-        if(keyboard.is_pressed('s')):
+        if(key[pygame.K_s]):
             game.menu.selection = 1
-        if(keyboard.is_pressed('c')):
+        if(key[pygame.K_c]):
             game.cpu = not game.cpu
-    if(keyboard.is_pressed('enter') or game.details.darking):
+    if(key[pygame.K_RETURN] or game.details.darking):
         game.details.darking = True
         if(transition_screen(game)):
             if game.menu.selection == 1:
@@ -1503,7 +1600,7 @@ def play(game = GAME()):
         game.map.floor+=1
         game.map.player.key = False
         game.map.player.firstAtt = True
-        game.attSelection = 0
+        game.attSelection = random.randint(0,4)
         put_attributes(game)
         if(not running):
             return 0
