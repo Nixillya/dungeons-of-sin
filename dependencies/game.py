@@ -895,25 +895,21 @@ def move_player(game = GAME()):
                                     break
                                 for monster in game.map.monsters:
                                     if(monster.pos.y==game.map.player.pos.y+y and monster.pos.x==game.map.player.pos.x+x):
-                                        print("CPU: Found a monster at",game.map.player.pos.y+y,game.map.player.pos.x+x)
                                         cpu[keyR] = True
                                         success = True
                                         break
                                 for item in game.map.items:
                                     if(item.y==game.map.player.pos.y+y and item.x==game.map.player.pos.x+x):
-                                        print("CPU: Found an item at",game.map.player.pos.y+y,game.map.player.pos.x+x)
                                         cpu[keyR] = True
                                         success = True
                                         break
                                 if(game.map.player.key):
                                     if(game.map.tiles[game.map.player.pos.y+y][game.map.player.pos.x+x]==2):
-                                        print("CPU: Found the exit at",game.map.player.pos.y+y,game.map.player.pos.x+x)
                                         cpu[keyR] = True
                                         success = True
                                         break
                                 else:
                                     if(game.map.player.pos.y+y==game.map.key.y and game.map.player.pos.x+x==game.map.key.x):
-                                        print("CPU: Found the key at",game.map.player.pos.y+y,game.map.player.pos.x+x)
                                         cpu[keyR] = True
                                         success = True
                                         break
