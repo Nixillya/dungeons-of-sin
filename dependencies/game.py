@@ -1645,7 +1645,7 @@ def menu(game = GAME()):
         exit_text = game.details.font50.render('  EXIT', True, "#FFFFFF")
         screen.blit(exit_text, ((500-exit_text.get_size()[0]/2),(550-exit_text.get_size()[1]/2)))
     
-    version_text = game.details.font50.render('V 0.3.6', True, "#505050")
+    version_text = game.details.font50.render('V 0.3.9', True, "#505050")
     screen.blit(version_text, ((900-version_text.get_size()[0]/2),(900-version_text.get_size()[1]/2)))
 
     if(game.cpu):
