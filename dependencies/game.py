@@ -91,16 +91,17 @@ class DAMAGESVIEW:
         self.pos = POS()
         self.size = 0
 class MAP:
-    def __init__(self):
-        self.tiles = numpy.zeros((1000,1000))
-        self.memory = numpy.zeros((1000,1000))
-        self.floor = 0
-        self.player = PLAYER()
-        self.key = POS()
-        self.items = numpy.array([POS() for _ in range(1)])
-        self.potionsColor = [(random.randint(0,255),random.randint(0,255),random.randint(0,255)),(random.randint(0,255),random.randint(0,255),random.randint(0,255)),(random.randint(0,255),random.randint(0,255),random.randint(0,255)),(random.randint(0,255),random.randint(0,255),random.randint(0,255)),(random.randint(0,255),random.randint(0,255),random.randint(0,255))]
-        self.monsters = numpy.array([MONSTER() for _ in range(1)])
-        self.damagesView = numpy.array([DAMAGESVIEW() for _ in range(50)])
+    tiles = numpy.zeros((1000,1000))
+    memory = numpy.zeros((1000,1000))
+    floor = 0
+    player = PLAYER()
+    key = POS()
+    items = numpy.array([POS() for _ in range(1)])
+    potionsColor = [(random.randint(0,255),random.randint(0,255),random.randint(0,255)),(random.randint(0,255),random.randint(0,255),random.randint(0,255)),(random.randint(0,255),random.randint(0,255),random.randint(0,255)),(random.randint(0,255),random.randint(0,255),random.randint(0,255)),(random.randint(0,255),random.randint(0,255),random.randint(0,255))]
+    monsters = numpy.array([MONSTER() for _ in range(1)])
+    damagesView = numpy.array([DAMAGESVIEW() for _ in range(50)])
+    spendAtt = False
+
 class MENU:
     selection = 0
 
@@ -338,11 +339,19 @@ def move_monsters(game = GAME()):
             if(monster.id==4):
                 pygame.draw.circle(screen,"#006C70",[X+monster.camPos.x+random.randint(-2,2),Y+monster.camPos.y+random.randint(-2,2)],20)
                 pygame.draw.circle(screen,"#006C70",[X+monster.camPos.x+random.randint(10,40)-25,Y+monster.camPos.y+random.randint(10,40)-25],random.randint(1,10))
+            if(monster.id==5):
+                if(not monster.hide):
+                    pygame.draw.circle(screen,"#000000",[X+monster.camPos.x+random.randint(-2,2),Y+monster.camPos.y+random.randint(-2,2)],20)
+                    pygame.draw.circle(screen,"#000000",[X+monster.camPos.x+random.randint(10,40)-25,Y+monster.camPos.y+random.randint(10,40)-25],random.randint(1,10))
+                else:
+                    if(monster.pos.y+1==game.map.player.pos.y or monster.pos.y-1==game.map.player.pos.y or monster.pos.x+1==game.map.player.pos.x or monster.pos.x-1==game.map.player.pos.x):
+                        monster.hide = False
             if(monster.attacked):
                 monster.attacked = False
                 pygame.draw.circle(screen,"#FF0000",[X+monster.camPos.x+random.randint(-2,2),Y+monster.camPos.y+random.randint(-2,2)],20)
-            dice_text = game.details.font15.render(f'{monster.dice}',True,"#ffffff")
-            screen.blit(dice_text, (X+monster.camPos.x+random.randint(-1,1)-dice_text.get_size()[0]/2,Y+monster.camPos.y+random.randint(-1,1)-dice_text.get_size()[1]/2))
+            if(not monster.hide):
+                dice_text = game.details.font15.render(f'{monster.dice}',True,"#ffffff")
+                screen.blit(dice_text, (X+monster.camPos.x+random.randint(-1,1)-dice_text.get_size()[0]/2,Y+monster.camPos.y+random.randint(-1,1)-dice_text.get_size()[1]/2))
 
         if(monster.attributes.hp<1):
             if(monster.alive):
@@ -360,6 +369,8 @@ def move_monsters(game = GAME()):
                 monster.key = True
             if(time.perf_counter()-monster.clockSpeed>1/monster.attributes.dexterity):
                 monster.clockSpeed = time.perf_counter()
+                if(random.random()<0.25 and monster.id==5):
+                    monster.hide = True
                 target = POS()
                 target.y = 0
                 target.x = 0
@@ -849,58 +860,78 @@ def move_player(game = GAME()):
                 input.esc = key[pygame.K_ESCAPE]
             else:
                 success = False
-                cpu = [False,False,False,False,False,False,False,]
-                for keyR in range(4):
-                    fail = False
-                    y = 0
-                    x = 0
-                    for j in range(game.map.player.attributes.intelligence):
-                        for i in range(game.map.player.attributes.intelligence):
-                            if(not success and not fail):
+                cpu = [False,False,False,False,False,False,False]
+                if(not game.map.player.inventoryOpened):
+                    for keyR in range(4):
+                        y = 0
+                        x = 0
+                        if(not success):
+                            while(True):
                                 if(random.random()<0.5):
                                     if(random.random()<0.5):
                                         y+=1
+                                        if(keyR==0):
+                                            if(random.random()<0.5):
+                                                y-=2
                                     else:
                                         y-=1
+                                        if(keyR==2):
+                                            if(random.random()<0.5):
+                                                y+=2
                                 else:
                                     if(random.random()<0.5):
                                         x+=1
+                                        if(keyR==1):
+                                            if(random.random()<0.5):
+                                                x-=2
                                     else:
                                         x-=1
+                                        if(keyR==3):
+                                            if(random.random()<0.5):
+                                                x+=2
+                                if(game.map.memory[game.map.player.pos.y+y][game.map.player.pos.x+x]==0):
+                                    break
                                 if(game.map.tiles[game.map.player.pos.y+y][game.map.player.pos.x+x]==0):
-                                    fail = True
                                     break
                                 for monster in game.map.monsters:
                                     if(monster.pos.y==game.map.player.pos.y+y and monster.pos.x==game.map.player.pos.x+x):
+                                        print("CPU: Found a monster at",game.map.player.pos.y+y,game.map.player.pos.x+x)
                                         cpu[keyR] = True
                                         success = True
                                         break
                                 for item in game.map.items:
                                     if(item.y==game.map.player.pos.y+y and item.x==game.map.player.pos.x+x):
+                                        print("CPU: Found an item at",game.map.player.pos.y+y,game.map.player.pos.x+x)
                                         cpu[keyR] = True
                                         success = True
                                         break
                                 if(game.map.player.key):
                                     if(game.map.tiles[game.map.player.pos.y+y][game.map.player.pos.x+x]==2):
+                                        print("CPU: Found the exit at",game.map.player.pos.y+y,game.map.player.pos.x+x)
                                         cpu[keyR] = True
                                         success = True
                                         break
                                 else:
                                     if(game.map.player.pos.y+y==game.map.key.y and game.map.player.pos.x+x==game.map.key.x):
+                                        print("CPU: Found the key at",game.map.player.pos.y+y,game.map.player.pos.x+x)
                                         cpu[keyR] = True
                                         success = True
                                         break
                                 if(game.map.tiles[game.map.player.pos.y+y][game.map.player.pos.x+x]==4):
-                                    fail = True
                                     break
                 if(not success):
                     cpu[random.randint(0,6)] = True
+                if(game.map.player.key):
+                    if(game.map.tiles[game.map.player.pos.y][game.map.player.pos.x]==2):
+                        cpu = [False,False,False,False,False,False,True]
                 input.w = cpu[0]
                 input.a = cpu[1]
                 input.s = cpu[2]
                 input.d = cpu[3]
                 input.q = cpu[4]
+                input.i = cpu[5]
                 input.enter = cpu[6]
+
             if(input.w):
                 clock = True
                 if(not game.map.player.inventoryOpened):
@@ -1297,10 +1328,27 @@ def put_attributes(game = GAME()):
                 X = x*50+500
                 if(random.random()<0.1):
                     pygame.draw.circle(screen,"#161616",[X+random.randint(10,40),Y+random.randint(10,40)],random.randint(1,10))
+        floor_text = game.details.font20.render(f'Floor {game.map.floor}',True,"#ffffff")
+        screen.blit(floor_text, (900,950))
         points_text = game.details.font50.render(f'ATTRIBUTES POINTS: {game.map.player.attPoints}', True, "#1EFF00")
         if(game.map.player.attPoints<=0):
             points_text = game.details.font50.render(f'ATTRIBUTES POINTS: {game.map.player.attPoints}', True, "#FF0000")
         screen.blit(points_text, (500-points_text.get_size()[0]/2+random.randint(-1,1),100-points_text.get_size()[1]/2+random.randint(-1,1)))
+        if(game.map.player.attPoints>0):
+            cost = 0
+            if(game.attSelection==0):
+                cost = 1
+            if(game.attSelection==1):
+                cost = 1
+            if(game.attSelection==2):
+                cost = 1
+            if(game.attSelection==3):
+                cost = game.map.player.attributes.intelligence
+            if(game.attSelection==4):
+                cost = int(game.map.player.attributes.dexterity)
+            if(game.attSelection!=5):
+                cost_text = game.details.font20.render(f'COST: {cost}', True, "#FF0000")
+                screen.blit(cost_text, (500-cost_text.get_size()[0]/2+random.randint(-1,1),150-cost_text.get_size()[1]/2+random.randint(-1,1)))
         if(game.attSelection==0):
             hp_text = game.details.font50.render(f'> HP: {game.map.player.attributes.hp} / {game.map.player.attributes.hpMax}', True, "#FFF67B")
             screen.blit(hp_text, (500-hp_text.get_size()[0]/2+random.randint(-1,1),250-hp_text.get_size()[1]/2+random.randint(-1,1)))
@@ -1337,7 +1385,7 @@ def put_attributes(game = GAME()):
         else:
             continue_text = game.details.font50.render(f'CONTINUE', True, "#FFFFFF")
             screen.blit(continue_text, (500-continue_text.get_size()[0]/2,900-continue_text.get_size()[1]/2))
-        if(time.perf_counter()-game.map.player.clockSpeed>0.2):
+        if(time.perf_counter()-game.map.player.clockSpeed>0.2 and not game.details.darking and not game.details.undarking):
             key = pygame.key.get_pressed()
             if(input.w):
                 game.map.player.clockSpeed = time.perf_counter()
@@ -1347,7 +1395,7 @@ def put_attributes(game = GAME()):
                 game.map.player.clockSpeed = time.perf_counter()
                 if(game.attSelection<5):
                     game.attSelection+=1
-            if(input.enter or game.details.darking):
+            if(input.enter):
                 game.map.player.clockSpeed = time.perf_counter()
                 if(game.map.player.attPoints>0):
                     if(game.attSelection==0):
@@ -1370,7 +1418,8 @@ def put_attributes(game = GAME()):
                         if(game.map.player.attPoints>=int(game.map.player.attributes.dexterity)):
                             game.map.player.attPoints-=int(game.map.player.attributes.dexterity)
                             game.map.player.attributes.dexterity+=0.1
-                if(game.attSelection==5 or game.details.darking):
+                    game.map.spendAtt = False
+                if(game.attSelection==5):
                     game.details.darking = True
 
         if(game.details.undarking):
@@ -1601,6 +1650,9 @@ def play(game = GAME()):
         game.map.player.key = False
         game.map.player.firstAtt = True
         game.attSelection = random.randint(0,4)
+        if(game.map.spendAtt):
+            game.map.player.attPoints+=1
+        game.map.spendAtt = True
         put_attributes(game)
         if(not running):
             return 0
