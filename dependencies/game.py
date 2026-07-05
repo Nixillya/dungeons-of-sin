@@ -91,16 +91,17 @@ class DAMAGESVIEW:
         self.pos = POS()
         self.size = 0
 class MAP:
-    tiles = numpy.zeros((1000,1000))
-    memory = numpy.zeros((1000,1000))
-    floor = 0
-    player = PLAYER()
-    key = POS()
-    items = numpy.array([POS() for _ in range(1)])
-    potionsColor = [(random.randint(0,255),random.randint(0,255),random.randint(0,255)),(random.randint(0,255),random.randint(0,255),random.randint(0,255)),(random.randint(0,255),random.randint(0,255),random.randint(0,255)),(random.randint(0,255),random.randint(0,255),random.randint(0,255)),(random.randint(0,255),random.randint(0,255),random.randint(0,255))]
-    monsters = numpy.array([MONSTER() for _ in range(1)])
-    damagesView = numpy.array([DAMAGESVIEW() for _ in range(50)])
-    spendAtt = False
+    def __init__(self): 
+        self.tiles = numpy.zeros((1000,1000))
+        self.memory = numpy.zeros((1000,1000))
+        self.floor = 0
+        self.player = PLAYER()
+        self.key = POS()
+        self.items = numpy.array([POS() for _ in range(1)])
+        self.potionsColor = [(random.randint(0,255),random.randint(0,255),random.randint(0,255)),(random.randint(0,255),random.randint(0,255),random.randint(0,255)),(random.randint(0,255),random.randint(0,255),random.randint(0,255)),(random.randint(0,255),random.randint(0,255),random.randint(0,255)),(random.randint(0,255),random.randint(0,255),random.randint(0,255))]
+        self.monsters = numpy.array([MONSTER() for _ in range(1)])
+        self.damagesView = numpy.array([DAMAGESVIEW() for _ in range(50)])
+        self.spendAtt = False
 
 class MENU:
     selection = 0
