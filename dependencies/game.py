@@ -53,6 +53,7 @@ class ITEM:
         self.goBreak = False
 class PLAYER:
     def __init__(self):
+        self.valueAtt = 10
         self.attPoints = 5
         self.level = 1
         self.gold = 0
@@ -659,14 +660,15 @@ def render_dark(game = GAME()):
                 chance = ((game.map.player.attributes.hpMax-game.map.player.attributes.hp)/(game.map.player.attributes.hpMax))/100
                 if(random.random()<chance):
                     pygame.draw.circle(screen,"#161616",[X+random.randint(10,40),Y+random.randint(10,40)],random.randint(1,10))
-                    j = random.randint(-11-game.map.player.attributes.intelligence,11+game.map.player.attributes.intelligence)
-                    i = random.randint(-11-game.map.player.attributes.intelligence,11+game.map.player.attributes.intelligence)
-                    for j1 in range(-1,2):
-                        for i1 in range(-1,2):
-                            if(j1==0 or i1==0):
-                                if((j>game.map.player.attributes.intelligence or j<0-game.map.player.attributes.intelligence) or (i>game.map.player.attributes.intelligence or i<0-game.map.player.attributes.intelligence)):
-                                    if(game.map.memory[game.map.player.pos.y+j+j1][game.map.player.pos.x+i+i1]==0):
-                                        game.map.memory[game.map.player.pos.y+j][game.map.player.pos.x+i] = 0
+                    if(random.random()<0.5):
+                        j = random.randint(-11-game.map.player.attributes.intelligence,11+game.map.player.attributes.intelligence)
+                        i = random.randint(-11-game.map.player.attributes.intelligence,11+game.map.player.attributes.intelligence)
+                        for j1 in range(-1,2):
+                            for i1 in range(-1,2):
+                                if(j1==0 or i1==0):
+                                    if((j>game.map.player.attributes.intelligence or j<0-game.map.player.attributes.intelligence) or (i>game.map.player.attributes.intelligence or i<0-game.map.player.attributes.intelligence)):
+                                        if(game.map.memory[game.map.player.pos.y+j+j1][game.map.player.pos.x+i+i1]==0):
+                                            game.map.memory[game.map.player.pos.y+j][game.map.player.pos.x+i] = 0
             else:
                 if(game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]>0):
                     game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]-=2
@@ -789,21 +791,13 @@ def render_interface(game = GAME()):
                 game.map.player.clockSpeed = time.perf_counter()
                 if(random.random()<0.25):
                     if(game.map.player.inventory[0][2].goBreak):
-                        if(random.random()<0.01):
+                        if(random.random()<0.05):
                             clear_slot(game,0,2)
-                            while(True):
-                                y = random.randint(0,999)
-                                x = random.randint(0,999)
-                                if(game.map.tiles[y][x]==1):
-                                    game.map.player.pos.y = y
-                                    game.map.player.pos.x = x
-                                    break
                             game.map.player.attributes.hp = 1
                             for y in range(4):
                                 for x in range(3):
                                     if(random.random()<0.5):
                                         clear_slot(game,y,x)
-                            game.map.player.keyInput = 5
                     else:
                         if(random.random()<game.map.player.inventory[0][2].breakChance/100):
                             game.map.player.inventory[0][2].goBreak = True
@@ -1352,6 +1346,8 @@ def put_attributes(game = GAME()):
                     pygame.draw.circle(screen,"#161616",[X+random.randint(10,40),Y+random.randint(10,40)],random.randint(1,10))
         floor_text = game.details.font20.render(f'Floor {game.map.floor}',True,"#ffffff")
         screen.blit(floor_text, (900,950))
+        value_text = game.details.font20.render(f'+{game.map.player.valueAtt}',True,"#ffffff")
+        screen.blit(value_text, (50,950))
         points_text = game.details.font50.render(f'ATTRIBUTES POINTS: {game.map.player.attPoints}', True, "#1EFF00")
         if(game.map.player.attPoints<=0):
             points_text = game.details.font50.render(f'ATTRIBUTES POINTS: {game.map.player.attPoints}', True, "#FF0000")
@@ -1371,6 +1367,8 @@ def put_attributes(game = GAME()):
             if(game.attSelection!=5):
                 cost_text = game.details.font20.render(f'COST: {cost}', True, "#FF0000")
                 screen.blit(cost_text, (500-cost_text.get_size()[0]/2+random.randint(-1,1),150-cost_text.get_size()[1]/2+random.randint(-1,1)))
+        if(game.map.player.valueAtt<1):
+            game.map.player.valueAtt = 10
         if(game.attSelection==0):
             hp_text = game.details.font50.render(f'> HP: {game.map.player.attributes.hp} / {game.map.player.attributes.hpMax}', True, "#FFF67B")
             screen.blit(hp_text, (500-hp_text.get_size()[0]/2+random.randint(-1,1),250-hp_text.get_size()[1]/2+random.randint(-1,1)))
@@ -1422,16 +1420,18 @@ def put_attributes(game = GAME()):
                 if(game.map.player.attPoints>0):
                     if(game.attSelection==0):
                         game.map.player.attPoints-=1
-                        hp = random.randint(1,10)
-                        game.map.player.attributes.hp+=hp
+                        game.map.player.attributes.hp+=game.map.player.valueAtt
                         if(game.map.player.attributes.hp>game.map.player.attributes.hpMax):
                             game.map.player.attributes.hpMax = game.map.player.attributes.hp
+                        game.map.player.valueAtt-=1
                     if(game.attSelection==1):
                         game.map.player.attPoints-=1
-                        game.map.player.attributes.defense+=random.randint(1,10)
+                        game.map.player.attributes.defense+=game.map.player.valueAtt
+                        game.map.player.valueAtt-=1
                     if(game.attSelection==2):
                         game.map.player.attPoints-=1
-                        game.map.player.attributes.strength+=random.randint(1,10)
+                        game.map.player.attributes.strength+=game.map.player.valueAtt
+                        game.map.player.valueAtt-=1
                     if(game.attSelection==3):
                         if(game.map.player.attPoints>=game.map.player.attributes.intelligence):
                             game.map.player.attPoints-=(game.map.player.attributes.intelligence)
@@ -1463,9 +1463,9 @@ def create_map(game = GAME()):
         floor = 250
     for y in range(1000):
         for x in range(1000):
-            game.map.tiles[y][x] = 0
-            game.map.memory[y][x] = 0
-            game.map.dark[y][x] = random.randint(35,65)
+            game.map.tiles[y,x] = 0
+            game.map.memory[y,x] = 0
+            game.map.dark[y,x] = random.randint(35,65)
     while(True):
         floorMap = floor
         if(floorMap>50):
@@ -1475,7 +1475,7 @@ def create_map(game = GAME()):
         for y in range(0-tamY,tamY,1):
             for x in range(0-tamX,tamX,1):
                 if(mapY+tamY>50 and mapY+tamY<950 and mapX+tamX>50 and mapX+tamX<950):
-                    game.map.tiles[mapY+y][mapX+x] = 1 # FREEBLOCK
+                    game.map.tiles[mapY+y,mapX+x] = 1 # FREEBLOCK
         direction = random.randint(0,3)
         while(True):
             if(direction==0):
@@ -1487,7 +1487,7 @@ def create_map(game = GAME()):
             if(direction==3):
                 mapX+=1
             if(mapY>100 and mapY<900 and mapX>100 and mapX<900):
-                game.map.tiles[mapY][mapX] = 1
+                game.map.tiles[mapY,mapX] = 1
             else:
                 direction = random.randint(0,3)
             if(random.random()<0.25):
@@ -1496,15 +1496,15 @@ def create_map(game = GAME()):
                 break
         if(i>=floorMap+1):
             if(random.random()<0.5):
-                game.map.tiles[mapY][mapX] = 2
+                game.map.tiles[mapY,mapX] = 2
                 break
         i+=1
     for it in range(game.map.floor):
         for i in range(10000):
             y = random.randint(0,999)
             x = random.randint(0,999)
-            if(game.map.tiles[y][x]==1):
-                game.map.tiles[y][x] = 3
+            if(game.map.tiles[y,x]==1):
+                game.map.tiles[y,x] = 3
                 break
     while(True):
         if(random.random()<0.5):
@@ -1512,15 +1512,15 @@ def create_map(game = GAME()):
         while(True):
             y = random.randint(0,999)
             x = random.randint(0,999)
-            if(game.map.tiles[y][x]==1):
-                game.map.tiles[y][x] = 4
+            if(game.map.tiles[y,x]==1):
+                game.map.tiles[y,x] = 4
                 break
     while(True):
         game.map.player.pos.y = random.randint(0,999)
         game.map.player.pos.x = random.randint(0,999)
         game.map.player.camPos.y = 525
         game.map.player.camPos.x = 525
-        if(game.map.tiles[game.map.player.pos.y][game.map.player.pos.x]==1):
+        if(game.map.tiles[game.map.player.pos.y,game.map.player.pos.x]==1):
             break
     game.map.monsters = numpy.array([MONSTER() for _ in range(floor)])
     for monster in game.map.monsters:
@@ -1541,13 +1541,17 @@ def create_map(game = GAME()):
                         break
             if(fail):
                 continue
-            monster.id = random.randint(0,5)
-            monster.attributes.hpMax = random.randint(1,10)
-            monster.attributes.defense = random.randint(1,10)
-            monster.attributes.strength = random.randint(1,10)
+            id = random.randint(0,game.map.floor-1)
+            if(id>5):
+                id = random.randint(0,5)
+            monster.id = id
+            valueAtt = 10
+            monster.attributes.hpMax = 1
+            monster.attributes.defense = 1
+            monster.attributes.strength = 1
             monster.attributes.intelligence = 1
             monster.attributes.dexterity = 1
-            if(game.map.tiles[monster.pos.y][monster.pos.x]==1):
+            if(game.map.tiles[monster.pos.y,monster.pos.x]==1):
                 if(game.map.player.pos.y!=monster.pos.y and game.map.player.pos.x!=monster.pos.x):
                     attPoints = game.map.floor
                     while(attPoints>0):
@@ -1558,15 +1562,20 @@ def create_map(game = GAME()):
                         if(monster.id==3):
                             if(random.random()<0.75):
                                 attribute = 4
+                        if(valueAtt<1):
+                            valueAtt = 10
                         if(attribute==0):
                             attPoints-=1
-                            monster.attributes.hpMax+=random.randint(1,10)
+                            monster.attributes.hpMax+=valueAtt
+                            valueAtt-=1
                         if(attribute==1):
                             attPoints-=1
-                            monster.attributes.defense+=random.randint(1,10)
+                            monster.attributes.defense+=valueAtt
+                            valueAtt-=1
                         if(attribute==2):
                             attPoints-=1
-                            monster.attributes.strength+=random.randint(1,10)
+                            monster.attributes.strength+=valueAtt
+                            valueAtt-=1
                         if(attribute==3):
                             if(attPoints>=monster.attributes.intelligence):
                                 attPoints-=monster.attributes.intelligence
@@ -1585,7 +1594,9 @@ def create_map(game = GAME()):
                         monster.attributes.hpMax = game.map.floor
                         monster.attributes.defense = game.map.floor
                         monster.attributes.strength = game.map.floor
-                        monster.attributes.intelligence *= 2
+                    if(monster.id==5):
+                        monster.attributes.hpMax = game.map.floor*2
+                        monster.attributes.defense = 0
                     if(random.random()<0.01):
                         monster.key = True
                         key = True
@@ -1596,7 +1607,7 @@ def create_map(game = GAME()):
         while(True):
             game.map.key.y = random.randint(0,999)
             game.map.key.x = random.randint(0,999)
-            if(game.map.tiles[game.map.key.y][game.map.key.x]==1):
+            if(game.map.tiles[game.map.key.y,game.map.key.x]==1):
                 key = True
                 break
     itensQ = game.map.floor
@@ -1618,7 +1629,7 @@ def create_map(game = GAME()):
                     success = False
                     break
             if(success):
-                if(game.map.tiles[item.y][item.x]==1):
+                if(game.map.tiles[item.y,item.x]==1):
                     break
 #----------------------------------------------------------------------------------------------------------------------------------------
 def menu(game = GAME()):
