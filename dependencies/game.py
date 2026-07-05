@@ -37,6 +37,7 @@ class ATTRIBUTES:
         self.strength = 10
         self.dexterity = 1
         self.intelligence = 1
+        self.color = [[255,255,255],[255,255,255],[255,255,255],[255,255,255],[255,255,255]]
 class ITEM:
     def __init__(self):
         self.id = 0
@@ -94,6 +95,7 @@ class MAP:
     def __init__(self): 
         self.tiles = numpy.zeros((1000,1000))
         self.memory = numpy.zeros((1000,1000))
+        self.dark = numpy.zeros((1000,1000))
         self.floor = 0
         self.player = PLAYER()
         self.key = POS()
@@ -110,7 +112,6 @@ class DETAILS:
     darking = False
     undarking = False
     darkAnimation = numpy.zeros((441))
-    darkAnimationMap = numpy.zeros((441))
     font15 = pygame.font.SysFont('Comic Sans MS', 15)
     font20 = pygame.font.SysFont('Comic Sans MS', 20)
     font50 = pygame.font.SysFont('Comic Sans MS', 50)
@@ -179,15 +180,20 @@ def clear_slot(game = GAME(),y=0,x=0):
     game.map.player.inventory[y][x].goBreak = False
 #----------------------------------------------------------------------------------------------------------------------------------------
 def render_inventory(game = GAME()):
-    
-    defense_text = game.details.font20.render(f'Defense: {game.map.player.attributes.defense}', True, (255, 255, 255))
-    screen.blit(defense_text, (210,20))
-    strength_text = game.details.font20.render(f'strength: {game.map.player.attributes.strength}', True, (255, 255, 255))
-    screen.blit(strength_text, (210,45))
-    intelligence_text = game.details.font20.render(f'Intelligence: {game.map.player.attributes.intelligence}', True, (255, 255, 255))
-    screen.blit(intelligence_text, (210,70))
-    dexterity_text = game.details.font20.render(f'Dexterity: {game.map.player.attributes.dexterity:.1f}', True, (255, 255, 255))
-    screen.blit(dexterity_text, (210,90))
+    for color in game.map.player.attributes.color:
+        for i in range(3):
+            if(color[i]<255):
+                color[i]+=1
+    hp_text = game.details.font20.render(f'HP: {game.map.player.attributes.hp}/{game.map.player.attributes.hpMax}', True, game.map.player.attributes.color[0])
+    screen.blit(hp_text, (210,20))
+    defense_text = game.details.font20.render(f'Defense: {game.map.player.attributes.defense}', True, game.map.player.attributes.color[1])
+    screen.blit(defense_text, (210,45))
+    strength_text = game.details.font20.render(f'strength: {game.map.player.attributes.strength}', True, game.map.player.attributes.color[2])
+    screen.blit(strength_text, (210,70))
+    intelligence_text = game.details.font20.render(f'Intelligence: {game.map.player.attributes.intelligence}', True, game.map.player.attributes.color[3])
+    screen.blit(intelligence_text, (210,95))
+    dexterity_text = game.details.font20.render(f'Dexterity: {game.map.player.attributes.dexterity:.1f}', True, game.map.player.attributes.color[4])
+    screen.blit(dexterity_text, (210,120))
 
     pygame.draw.rect(screen,"#1D1D1D",(10,10,190,250))
     pygame.draw.polygon(screen,"#FFFFFF",[[10,10],[200,10],[200,260],[10,260]],2)
@@ -345,7 +351,12 @@ def move_monsters(game = GAME()):
                     pygame.draw.circle(screen,"#000000",[X+monster.camPos.x+random.randint(-2,2),Y+monster.camPos.y+random.randint(-2,2)],20)
                     pygame.draw.circle(screen,"#000000",[X+monster.camPos.x+random.randint(10,40)-25,Y+monster.camPos.y+random.randint(10,40)-25],random.randint(1,10))
                 else:
-                    if(monster.pos.y+1==game.map.player.pos.y or monster.pos.y-1==game.map.player.pos.y or monster.pos.x+1==game.map.player.pos.x or monster.pos.x-1==game.map.player.pos.x):
+                    if(
+                        (monster.pos.y + 1 == game.map.player.pos.y and monster.pos.x == game.map.player.pos.x) or
+                        (monster.pos.y - 1 == game.map.player.pos.y and monster.pos.x == game.map.player.pos.x) or
+                        (monster.pos.x + 1 == game.map.player.pos.x and monster.pos.y == game.map.player.pos.y) or
+                        (monster.pos.x - 1 == game.map.player.pos.x and monster.pos.y == game.map.player.pos.y)
+                    ):
                         monster.hide = False
             if(monster.attacked):
                 monster.attacked = False
@@ -370,7 +381,7 @@ def move_monsters(game = GAME()):
                 monster.key = True
             if(time.perf_counter()-monster.clockSpeed>1/monster.attributes.dexterity):
                 monster.clockSpeed = time.perf_counter()
-                if(random.random()<0.25 and monster.id==5):
+                if(random.random()<0.5 and monster.id==5):
                     monster.hide = True
                 target = POS()
                 target.y = 0
@@ -580,15 +591,16 @@ def move_monsters(game = GAME()):
                                 if(random.random()<0.25):
                                     debuff = random.randint(0,4)
                                 if(debuff==0):
-                                    game.map.player.attributes.hpMax-=1
+                                    game.map.player.attributes.hpMax-=random.randint(1,game.map.floor)
                                 if(debuff==1):
-                                    game.map.player.attributes.defense-=1
+                                    game.map.player.attributes.defense-=random.randint(1,game.map.floor)
                                 if(debuff==2):
-                                    game.map.player.attributes.strength-=1
+                                    game.map.player.attributes.strength-=random.randint(1,game.map.floor)
                                 if(debuff==3):
                                     game.map.player.attributes.intelligence-=1
                                 if(debuff==4):
                                     game.map.player.attributes.dexterity-=0.1
+                                game.map.player.attributes.color[debuff] = [255,0,0]
                         objectView = random.randint(0,49)
                         game.map.damagesView[objectView].value = (0-(damage-defense))
                         game.map.damagesView[objectView].id = 1
@@ -623,24 +635,23 @@ def move_monsters(game = GAME()):
                 else:
                     if(direction!=-1):
                         monster.dice = change_dice(monster.dice)
-    game.map.player.keyInput = 0
 #----------------------------------------------------------------------------------------------------------------------------------------
 def render_dark(game = GAME()):
     inter = 0
-    for y in range(-10,10,1):
-        for x in range(-10,10,1):
+    for y in range(-11,11,1):
+        for x in range(-11,11,1):
             Y = y*50+500
             X = x*50+500
             if(game.map.memory[game.map.player.pos.y+y][game.map.player.pos.x+x]==0):
                 if(random.random()<0.5):
-                    game.details.darkAnimationMap[inter]+=1
+                    game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]+=1
                 else:
-                    game.details.darkAnimationMap[inter]-=1
-                if(game.details.darkAnimationMap[inter]>65):
-                    game.details.darkAnimationMap[inter] = 65
-                if(game.details.darkAnimationMap[inter]<35):
-                    game.details.darkAnimationMap[inter] = 35
-                size = game.details.darkAnimationMap[inter]
+                    game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]-=1
+                if(game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]>65):
+                    game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]-=1
+                if(game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]<35):
+                    game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]+=1
+                size = game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]
                 pygame.draw.circle(screen,"#000000",[X+25,Y+25],size)
                 if(game.map.player.attributes.hpMax<1):
                     game.map.player.attributes.hpMax = 1
@@ -656,8 +667,12 @@ def render_dark(game = GAME()):
                                 if((j>game.map.player.attributes.intelligence or j<0-game.map.player.attributes.intelligence) or (i>game.map.player.attributes.intelligence or i<0-game.map.player.attributes.intelligence)):
                                     if(game.map.memory[game.map.player.pos.y+j+j1][game.map.player.pos.x+i+i1]==0):
                                         game.map.memory[game.map.player.pos.y+j][game.map.player.pos.x+i] = 0
+            else:
+                if(game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]>0):
+                    game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]-=2
+                    size = game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]
+                    pygame.draw.circle(screen,"#000000",[X+25,Y+25],size)
             inter+=1
-                
 #----------------------------------------------------------------------------------------------------------------------------------------
 def render_interface(game = GAME()):
     for damageObject in game.map.damagesView:
@@ -996,24 +1011,34 @@ def move_player(game = GAME()):
                                 hp = random.randint(1,10)
                                 game.map.player.attributes.hpMax+=hp
                                 game.map.player.attributes.hp+=hp
+                                game.map.player.attributes.color[buff] = [0,255,0]
                             if(debuff==0):
                                 game.map.player.attributes.hpMax-=random.randint(1,10)
+                                game.map.player.attributes.color[debuff] = [255,0,0]
                             if(buff==1):
                                 game.map.player.attributes.defense+=random.randint(1,10)
+                                game.map.player.attributes.color[buff] = [0,255,0]
                             if(debuff==1):
                                 game.map.player.attributes.defense-=random.randint(1,10)
+                                game.map.player.attributes.color[debuff] = [255,0,0]
                             if(buff==2):
                                 game.map.player.attributes.strength+=random.randint(1,10)
+                                game.map.player.attributes.color[buff] = [0,255,0]
                             if(debuff==2):
                                 game.map.player.attributes.strength-=random.randint(1,10)
+                                game.map.player.attributes.color[debuff] = [255,0,0]
                             if(buff==3):
                                 game.map.player.attributes.intelligence+=1
+                                game.map.player.attributes.color[buff] = [0,255,0]
                             if(debuff==3):
                                 game.map.player.attributes.intelligence-=1
+                                game.map.player.attributes.color[debuff] = [255,0,0]
                             if(buff==4):
                                 game.map.player.attributes.dexterity+=0.1
+                                game.map.player.attributes.color[buff] = [0,255,0]
                             if(debuff==4):
                                 game.map.player.attributes.dexterity-=0.1
+                                game.map.player.attributes.color[debuff] = [255,0,0]
                             clear_slot(game,game.map.player.inventorySelection.y,game.map.player.inventorySelection.x)
                         if(game.map.player.inventory[game.map.player.inventorySelection.y][game.map.player.inventorySelection.x].id==4):
                             if(game.map.player.inventory[game.map.player.inventorySelection.y][game.map.player.inventorySelection.x].cursed):
@@ -1229,12 +1254,12 @@ def simulate_vision(game = GAME(),y=0,x=0,i=0):
         if(random.random()<0.5):
             if(y<0):
                 y-=1
-            else:
+            if(y>0):
                 y+=1
         if(random.random()<0.5):
             if(x<0):
                 x-=1
-            else:
+            if(x>0):
                 x+=1
     if(game.map.tiles[game.map.player.pos.y+y][game.map.player.pos.x+x]!=0 and game.map.tiles[game.map.player.pos.y+y][game.map.player.pos.x+x]!=3):
         i+=1
@@ -1415,7 +1440,8 @@ def put_attributes(game = GAME()):
                         if(game.map.player.attPoints>=int(game.map.player.attributes.dexterity)):
                             game.map.player.attPoints-=int(game.map.player.attributes.dexterity)
                             game.map.player.attributes.dexterity+=0.1
-                    game.map.spendAtt = False
+                    if(game.attSelection!=5):
+                        game.map.spendAtt = False
                 if(game.attSelection==5):
                     game.details.darking = True
 
@@ -1439,6 +1465,7 @@ def create_map(game = GAME()):
         for x in range(1000):
             game.map.tiles[y][x] = 0
             game.map.memory[y][x] = 0
+            game.map.dark[y][x] = random.randint(35,65)
     while(True):
         floorMap = floor
         if(floorMap>50):
@@ -1661,6 +1688,7 @@ def play(game = GAME()):
     move_monsters(game)
     render_dark(game)
     render_interface(game)
+    game.map.player.keyInput = 0
     if(game.details.darking):
         if(transition_screen(game)):
             game.next = True
