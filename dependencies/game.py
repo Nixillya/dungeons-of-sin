@@ -8,24 +8,7 @@ screen = pygame.display.set_mode((1000, 1000))
 pygame.display.set_caption("DUNGEONS OF SIN")
 clock = pygame.time.Clock()
 running = True
-#----------------------------------------------------------------------------------------------------------------------------------------
 
-# LORE
-
-"""
-O jogador se encontra em um desafio entre a vida e a morte e ele precisa chegar até o final para 
-mostrar o seu verdadeiro significado e ir para o paraiso.
-
-Pode se entender que o jogador se encontra em um tipo de punição
-onde ele luta infinitamente contra a personificação dos seus proprios pecados. 
-
-mas ele nunca percebeu isso e acredita que deve continuar lutando
-cada morte é uma nova memoria e tentativa perdida de tentar chegar em algo que nunca existiu de verdade.
-"""
-
-# Dungeons Of Sin
-
-#----------------------------------------------------------------------------------------------------------------------------------------
 class POS:
     def __init__(self):
         self.x = -1
