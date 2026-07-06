@@ -1,0 +1,3 @@
+@echo off
+"%~dp0dependencies\python-3.10.0-embed-amd64\pythonw.exe" "%~dp0dependencies\game.py"
+exit

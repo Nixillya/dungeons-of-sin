@@ -60,7 +60,6 @@ class PLAYER:
         self.exp = 0
         self.nextExp = 1
         self.keyInput = 0
-        self.clockSpeed = time.perf_counter()
         self.alive = True
         self.inventoryOpened = False
         self.fallen = False
@@ -113,12 +112,13 @@ class DETAILS:
     darking = False
     undarking = False
     darkAnimation = numpy.zeros((441))
-    font15 = pygame.font.SysFont('Comic Sans MS', 15)
-    font20 = pygame.font.SysFont('Comic Sans MS', 20)
-    font50 = pygame.font.SysFont('Comic Sans MS', 50)
-    font80 = pygame.font.SysFont('Comic Sans MS', 80)
+    font15 = pygame.font.SysFont('arialblack', 15)
+    font20 = pygame.font.SysFont('arialblack', 20)
+    font50 = pygame.font.SysFont('arialblack', 50)
+    font80 = pygame.font.SysFont('arialblack', 80)
 
 class GAME:
+    clockMove = time.perf_counter()
     attSelection = 0
     map = MAP()
     menu = MENU()
@@ -137,6 +137,11 @@ class INPUT:
     enter = False
     esc = False
 
+#----------------------------------------------------------------------------------------------------------------------------------------
+def play_sound(sound,volume=1):
+    pygame.mixer_music.load(sound)
+    pygame.mixer_music.set_volume(volume)
+    pygame.mixer_music.play()
 #----------------------------------------------------------------------------------------------------------------------------------------
 def transition_screen(game = GAME()):
     if(game.details.darking):
@@ -187,13 +192,13 @@ def render_inventory(game = GAME()):
                 color[i]+=1
     hp_text = game.details.font20.render(f'HP: {game.map.player.attributes.hp}/{game.map.player.attributes.hpMax}', True, game.map.player.attributes.color[0])
     screen.blit(hp_text, (210,20))
-    defense_text = game.details.font20.render(f'Defense: {game.map.player.attributes.defense}', True, game.map.player.attributes.color[1])
+    defense_text = game.details.font20.render(f'DEFENSE: {game.map.player.attributes.defense}', True, game.map.player.attributes.color[1])
     screen.blit(defense_text, (210,45))
-    strength_text = game.details.font20.render(f'strength: {game.map.player.attributes.strength}', True, game.map.player.attributes.color[2])
+    strength_text = game.details.font20.render(f'STRENGTH: {game.map.player.attributes.strength}', True, game.map.player.attributes.color[2])
     screen.blit(strength_text, (210,70))
-    intelligence_text = game.details.font20.render(f'Intelligence: {game.map.player.attributes.intelligence}', True, game.map.player.attributes.color[3])
+    intelligence_text = game.details.font20.render(f'INTELLIGENCE: {game.map.player.attributes.intelligence}', True, game.map.player.attributes.color[3])
     screen.blit(intelligence_text, (210,95))
-    dexterity_text = game.details.font20.render(f'Dexterity: {game.map.player.attributes.dexterity:.1f}', True, game.map.player.attributes.color[4])
+    dexterity_text = game.details.font20.render(f'DEXTERITY: {game.map.player.attributes.dexterity:.1f}', True, game.map.player.attributes.color[4])
     screen.blit(dexterity_text, (210,120))
 
     pygame.draw.rect(screen,"#1D1D1D",(10,10,190,250))
@@ -679,7 +684,7 @@ def render_dark(game = GAME()):
 def render_interface(game = GAME()):
     for damageObject in game.map.damagesView:
         if(damageObject.size>0):
-            font = pygame.font.SysFont('Comic Sans MS', damageObject.size)
+            font = pygame.font.SysFont('arialblack', damageObject.size)
             damage_text = font.render(f"{damageObject.value}", True, "#e2e2e2")
             if(damageObject.id==1):
                 damage_text = font.render(f"{damageObject.value}", True, "#ff0000")
@@ -787,8 +792,8 @@ def render_interface(game = GAME()):
             if(game.map.player.inventory[0][2].goBreak):
                 breakChance_text = game.details.font20.render(f'{game.map.player.inventory[0][2].breakChance}%',True,"#FF0000")
             screen.blit(breakChance_text, (525+25-breakChance_text.get_size()[0]/2+random.randint(-1,1), 850+60-breakChance_text.get_size()[1]/2+random.randint(-1,1)))
-            if(time.perf_counter()-game.map.player.clockSpeed>0.25):
-                game.map.player.clockSpeed = time.perf_counter()
+            if(time.perf_counter()-game.clockMove>0.25):
+                game.clockMove = time.perf_counter()
                 if(random.random()<0.25):
                     if(game.map.player.inventory[0][2].goBreak):
                         if(random.random()<0.05):
@@ -842,7 +847,7 @@ def move_player(game = GAME()):
         timeWait = 1/game.map.player.attributes.dexterity
         if(game.map.player.inventoryOpened):
             timeWait = 0.25
-        if(time.perf_counter()-game.map.player.clockSpeed>timeWait):
+        if(time.perf_counter()-game.clockMove>timeWait):
             clock = False
             target = POS()
             target.y = 0
@@ -899,10 +904,6 @@ def move_player(game = GAME()):
                                         if(keyR==3):
                                             if(random.random()<0.5):
                                                 x+=2
-                                if(game.map.memory[game.map.player.pos.y+y][game.map.player.pos.x+x]==0):
-                                    cpu[keyR] = True
-                                    success = True
-                                    break
                                 if(game.map.tiles[game.map.player.pos.y+y][game.map.player.pos.x+x]==0):
                                     break
                                 for monster in game.map.monsters:
@@ -925,7 +926,9 @@ def move_player(game = GAME()):
                                         cpu[keyR] = True
                                         success = True
                                         break
-                                if(game.map.tiles[game.map.player.pos.y+y][game.map.player.pos.x+x]==4):
+                                if(game.map.memory[game.map.player.pos.y+y][game.map.player.pos.x+x]==0):
+                                    cpu[keyR] = True
+                                    success = True
                                     break
                 if(not success):
                     cpu[random.randint(0,6)] = True
@@ -1114,7 +1117,7 @@ def move_player(game = GAME()):
                 else:
                     game.map.player.inventoryOpened = False
             if(clock):
-                game.map.player.clockSpeed = time.perf_counter()
+                game.clockMove = time.perf_counter()
             if((target.y!=0 and target.x==0) or (target.y==0 and target.x!=0)):
                 game.map.player.pos.y+=target.y
                 game.map.player.pos.x+=target.x
@@ -1252,11 +1255,21 @@ def simulate_vision(game = GAME(),y=0,x=0,i=0):
                 y-=1
             if(y>0):
                 y+=1
+            if(y==0):
+                if(random.random()<0.5):
+                    y-=1
+                else:
+                    y+=1
         if(random.random()<0.5):
             if(x<0):
                 x-=1
             if(x>0):
                 x+=1
+            if(x==0):
+                if(random.random()<0.5):
+                    x-=1
+                else:
+                    x+=1
     if(game.map.tiles[game.map.player.pos.y+y][game.map.player.pos.x+x]!=0 and game.map.tiles[game.map.player.pos.y+y][game.map.player.pos.x+x]!=3):
         i+=1
         game.map.memory[game.map.player.pos.y+y][game.map.player.pos.x+x] = 1
@@ -1315,7 +1328,7 @@ def render_game(game = GAME()):
 #----------------------------------------------------------------------------------------------------------------------------------------
 def put_attributes(game = GAME()):
     global running
-    game.map.player.clockSpeed = time.perf_counter()
+    game.clockMove = time.perf_counter()
     game.details.darking = False
     game.details.undarking = True
     for i in range(441):
@@ -1407,18 +1420,18 @@ def put_attributes(game = GAME()):
         else:
             continue_text = game.details.font50.render(f'CONTINUE', True, "#FFFFFF")
             screen.blit(continue_text, (500-continue_text.get_size()[0]/2,900-continue_text.get_size()[1]/2))
-        if(time.perf_counter()-game.map.player.clockSpeed>0.2 and not game.details.darking and not game.details.undarking):
+        if(time.perf_counter()-game.clockMove>0.2 and not game.details.darking and not game.details.undarking):
             key = pygame.key.get_pressed()
             if(input.w):
-                game.map.player.clockSpeed = time.perf_counter()
+                game.clockMove = time.perf_counter()
                 if(game.attSelection>0):
                     game.attSelection-=1
             if(input.s):
-                game.map.player.clockSpeed = time.perf_counter()
+                game.clockMove = time.perf_counter()
                 if(game.attSelection<5):
                     game.attSelection+=1
             if(input.enter):
-                game.map.player.clockSpeed = time.perf_counter()
+                game.clockMove = time.perf_counter()
                 if(game.map.player.attPoints>0):
                     if(game.attSelection==0):
                         game.map.player.attPoints-=1
@@ -1665,16 +1678,22 @@ def menu(game = GAME()):
         cpu_text = game.details.font50.render('CPU', True, "#505050")
         screen.blit(cpu_text, ((100-cpu_text.get_size()[0]/2),(900-cpu_text.get_size()[1]/2)))
 
-    key = pygame.key.get_pressed()
-    if(not game.details.darking):
-        if(key[pygame.K_w]):
-            game.menu.selection = 0
-        if(key[pygame.K_s]):
-            game.menu.selection = 1
-        if(key[pygame.K_c]):
-            game.cpu = not game.cpu
-    if(key[pygame.K_RETURN] or game.details.darking):
-        game.details.darking = True
+    if(time.perf_counter()-game.clockMove>0.2 and not game.details.darking and not game.details.undarking):
+        key = pygame.key.get_pressed()
+        if(not game.details.darking):
+            if(key[pygame.K_w]):
+                game.clockMove = time.perf_counter()
+                game.menu.selection = 0
+            if(key[pygame.K_s]):
+                game.clockMove = time.perf_counter()
+                game.menu.selection = 1
+            if(key[pygame.K_c]):
+                game.clockMove = time.perf_counter()
+                game.cpu = not game.cpu
+        if(key[pygame.K_RETURN] or game.details.darking):
+            game.clockMove = time.perf_counter()
+            game.details.darking = True
+    if(game.details.darking or game.details.undarking):
         if(transition_screen(game)):
             if game.menu.selection == 1:
                 running = False
