@@ -648,7 +648,7 @@ def render_dark(game = GAME()):
                     game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]+=1
                 else:
                     game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]-=1
-                if(game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]>65):
+                if(game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]>55):
                     game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]-=1
                 if(game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]<35):
                     game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]+=1
@@ -900,6 +900,8 @@ def move_player(game = GAME()):
                                             if(random.random()<0.5):
                                                 x+=2
                                 if(game.map.memory[game.map.player.pos.y+y][game.map.player.pos.x+x]==0):
+                                    cpu[keyR] = True
+                                    success = True
                                     break
                                 if(game.map.tiles[game.map.player.pos.y+y][game.map.player.pos.x+x]==0):
                                     break
