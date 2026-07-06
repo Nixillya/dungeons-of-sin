@@ -5,6 +5,7 @@ import time
 
 pygame.init()
 screen = pygame.display.set_mode((1000, 1000))
+pygame.display.set_caption("DUNGEONS OF SIN")
 clock = pygame.time.Clock()
 running = True
 #----------------------------------------------------------------------------------------------------------------------------------------
@@ -1451,10 +1452,12 @@ def put_attributes(game = GAME()):
                         if(game.map.player.attPoints>=game.map.player.attributes.intelligence):
                             game.map.player.attPoints-=(game.map.player.attributes.intelligence)
                             game.map.player.attributes.intelligence+=1
+                            game.map.player.valueAtt-=1
                     if(game.attSelection==4):
                         if(game.map.player.attPoints>=int(game.map.player.attributes.dexterity)):
                             game.map.player.attPoints-=int(game.map.player.attributes.dexterity)
                             game.map.player.attributes.dexterity+=0.1
+                            game.map.player.valueAtt-=1
                     if(game.attSelection!=5):
                         game.map.spendAtt = False
                 if(game.attSelection==5):
@@ -1671,7 +1674,7 @@ def menu(game = GAME()):
         exit_text = game.details.font50.render('  EXIT', True, "#FFFFFF")
         screen.blit(exit_text, ((500-exit_text.get_size()[0]/2),(550-exit_text.get_size()[1]/2)))
     
-    version_text = game.details.font50.render('V 0.3.9', True, "#505050")
+    version_text = game.details.font50.render('V 0.4.2', True, "#505050")
     screen.blit(version_text, ((900-version_text.get_size()[0]/2),(900-version_text.get_size()[1]/2)))
 
     if(game.cpu):
