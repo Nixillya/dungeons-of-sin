@@ -1241,9 +1241,10 @@ def simulate_vision(game = GAME(),y=0,x=0,i=0):
                 y+=1
             if(y==0):
                 if(random.random()<0.5):
-                    y-=1
-                else:
-                    y+=1
+                    if(random.random()<0.5):
+                        y-=1
+                    else:
+                        y+=1
         if(random.random()<0.5):
             if(x<0):
                 x-=1
@@ -1251,9 +1252,10 @@ def simulate_vision(game = GAME(),y=0,x=0,i=0):
                 x+=1
             if(x==0):
                 if(random.random()<0.5):
-                    x-=1
-                else:
-                    x+=1
+                    if(random.random()<0.5):
+                        x-=1
+                    else:
+                        x+=1
     if(game.map.tiles[game.map.player.pos.y+y][game.map.player.pos.x+x]!=0 and game.map.tiles[game.map.player.pos.y+y][game.map.player.pos.x+x]!=3):
         i+=1
         game.map.memory[game.map.player.pos.y+y][game.map.player.pos.x+x] = 1
