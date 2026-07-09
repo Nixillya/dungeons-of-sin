@@ -598,6 +598,7 @@ def move_monsters(game = GAME()):
                         game.map.damagesView[objectView].pos.x = random.randint(250,750)
                         game.map.damagesView[objectView].size = 50
                         monster.dice = change_dice(monster.dice)
+                        screen.fill("#ff0000")
                 for otherMonster in game.map.monsters:
                     if(otherMonster==monster):
                         continue
@@ -990,38 +991,30 @@ def move_player(game = GAME()):
                             while(buff==debuff):
                                 buff = random.randint(0,4)
                                 debuff = random.randint(0,4)
+                            game.map.player.attributes.color[buff] = [0,255,0]
+                            game.map.player.attributes.color[debuff] = [255,0,0]
                             if(buff==0):
                                 hp = random.randint(1,10)
                                 game.map.player.attributes.hpMax+=hp
                                 game.map.player.attributes.hp+=hp
-                                game.map.player.attributes.color[buff] = [0,255,0]
                             if(debuff==0):
                                 game.map.player.attributes.hpMax-=random.randint(1,10)
-                                game.map.player.attributes.color[debuff] = [255,0,0]
                             if(buff==1):
                                 game.map.player.attributes.defense+=random.randint(1,10)
-                                game.map.player.attributes.color[buff] = [0,255,0]
                             if(debuff==1):
                                 game.map.player.attributes.defense-=random.randint(1,10)
-                                game.map.player.attributes.color[debuff] = [255,0,0]
                             if(buff==2):
                                 game.map.player.attributes.strength+=random.randint(1,10)
-                                game.map.player.attributes.color[buff] = [0,255,0]
                             if(debuff==2):
                                 game.map.player.attributes.strength-=random.randint(1,10)
-                                game.map.player.attributes.color[debuff] = [255,0,0]
                             if(buff==3):
                                 game.map.player.attributes.intelligence+=1
-                                game.map.player.attributes.color[buff] = [0,255,0]
                             if(debuff==3):
                                 game.map.player.attributes.intelligence-=1
-                                game.map.player.attributes.color[debuff] = [255,0,0]
                             if(buff==4):
                                 game.map.player.attributes.dexterity+=0.1
-                                game.map.player.attributes.color[buff] = [0,255,0]
                             if(debuff==4):
                                 game.map.player.attributes.dexterity-=0.1
-                                game.map.player.attributes.color[debuff] = [255,0,0]
                             clear_slot(game,game.map.player.inventorySelection.y,game.map.player.inventorySelection.x)
                         if(game.map.player.inventory[game.map.player.inventorySelection.y][game.map.player.inventorySelection.x].id==4):
                             if(game.map.player.inventory[game.map.player.inventorySelection.y][game.map.player.inventorySelection.x].cursed):
