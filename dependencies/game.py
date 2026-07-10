@@ -284,7 +284,7 @@ def render_inventory(game = GAME()):
                 pygame.draw.polygon(screen, "#D0D0D0", [(x+25, y+9),(x+35, y+16),(x+33, y+30),(x+25, y+39),(x+17, y+30),(x+15, y+16)])
                 pygame.draw.line(screen, "#FFFFFF", (x+18, y+12), (x+25, y+38), 2)
             if(game.map.player.inventory[j][i].cursed and game.map.player.inventory[j][i].reveled):
-                pygame.draw.circle(screen,"#000000",[x+random.randint(10,40),y+random.randint(10,40)],random.randint(1,10))
+                pygame.draw.circle(screen,"#FF0000",[x+random.randint(10,40),y+random.randint(10,40)],random.randint(1,10))
             x+=60
         y+=60
         x = 20
@@ -504,12 +504,14 @@ def move_monsters(game = GAME()):
                     success = False
                 if(game.map.player.pos.y==monster.pos.y and game.map.player.pos.x==monster.pos.x):
                     success = False
-                    if(game.map.player.attributes.hp>=1):
+                    if(game.map.player.attributes.hp>0):
+                        critDM = random.choice([True,False])
+                        critDF = random.choice([True,False])
                         damage = random.randint(1,monster.attributes.strength)
-                        if(random.random()<0.5):
+                        if(critDM):
                             damage+=monster.attributes.intelligence
                         defense = int(game.map.player.attributes.defense*(game.map.player.dice/100))
-                        if(random.random()<0.5):
+                        if(critDF):
                             defense+=monster.attributes.intelligence
 
                         if(game.map.player.inventory[0][1].id==7):
@@ -591,7 +593,11 @@ def move_monsters(game = GAME()):
                                     game.map.player.attributes.dexterity-=0.1
                                 game.map.player.attributes.color[debuff] = [255,0,0]
                         objectView = random.randint(0,49)
-                        game.map.damagesView[objectView].value = (0-(damage-defense))
+                        game.map.damagesView[objectView].value = str(damage-defense)
+                        if(critDF):
+                            game.map.damagesView[objectView].value = '!'+str(damage-defense)
+                        if(critDM):
+                            game.map.damagesView[objectView].value += '!'
                         game.map.damagesView[objectView].id = 1
                         game.map.damagesView[objectView].pos.y = random.randint(250,750)
                         game.map.damagesView[objectView].pos.x = random.randint(250,750)
@@ -761,7 +767,7 @@ def render_interface(game = GAME()):
                         breakChance_text = game.details.font20.render(f'{game.map.player.inventory[0][i].breakChance}%',True,"#FF0000")
                     screen.blit(breakChance_text, (x+25-breakChance_text.get_size()[0]/2+random.randint(-1,1), y+60-breakChance_text.get_size()[1]/2+random.randint(-1,1)))
                 if(game.map.player.inventory[0][i].cursed and game.map.player.inventory[0][i].reveled):
-                    pygame.draw.circle(screen,"#000000",[x+random.randint(10,40),y+random.randint(10,40)],random.randint(1,10))
+                    pygame.draw.circle(screen,"#FF0000",[x+random.randint(10,40),y+random.randint(10,40)],random.randint(1,10))
                 x+=60
     else:
         floor_text = game.details.font20.render(f'{game.map.floor}',True,"#000000")
@@ -1107,11 +1113,13 @@ def move_player(game = GAME()):
                 for monster in game.map.monsters:
                     if(game.map.player.pos.y == monster.pos.y and game.map.player.pos.x == monster.pos.x):
                         success = False
+                        critDM = random.choice([True,False])
+                        critDF = random.choice([True,False])
                         damage = int(game.map.player.attributes.strength*(game.map.player.dice/100))
-                        if(random.random()<0.5):
+                        if(critDM):
                             damage+=game.map.player.attributes.intelligence
                         defense = int(monster.attributes.defense*(monster.dice/100))
-                        if(random.random()<0.5):
+                        if(critDF):
                             defense+=game.map.player.attributes.intelligence
 
                         if(game.map.player.inventory[0][0].id==6):
@@ -1145,7 +1153,11 @@ def move_player(game = GAME()):
 
                         monster.attacked = True
                         objectView = random.randint(0,49)
-                        game.map.damagesView[objectView].value = (damage-defense)
+                        game.map.damagesView[objectView].value = str(damage-defense)
+                        if(critDF):
+                            game.map.damagesView[objectView].value = '!'+str(damage-defense)
+                        if(critDM):
+                            game.map.damagesView[objectView].value += '!'
                         game.map.damagesView[objectView].id = 0
                         game.map.damagesView[objectView].pos.y = random.randint(250,750)
                         game.map.damagesView[objectView].pos.x = random.randint(250,750)
@@ -1558,8 +1570,6 @@ def create_map(game = GAME()):
                         monster.attributes.hpMax = game.map.floor
                         monster.attributes.defense = game.map.floor
                         monster.attributes.strength = game.map.floor
-                        monster.attributes.intelligence = 1
-                        monster.attributes.dexterity = 1
                     if(monster.id==4):
                         monster.attributes.hpMax = game.map.floor
                         monster.attributes.defense = game.map.floor
@@ -1626,7 +1636,7 @@ def menu(game = GAME()):
         exit_text = game.details.font50.render('  EXIT', True, "#FFFFFF")
         screen.blit(exit_text, ((500-exit_text.get_size()[0]/2),(550-exit_text.get_size()[1]/2)))
     
-    version_text = game.details.font50.render('V 0.4.3', True, "#505050")
+    version_text = game.details.font50.render('V 0.4.4', True, "#505050")
     screen.blit(version_text, ((900-version_text.get_size()[0]/2),(900-version_text.get_size()[1]/2)))
 
     if(game.cpu):

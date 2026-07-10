@@ -5,3 +5,9 @@ V 0.4.3
     - Removido efeito de maldições e apenas deixado para os equipamentos serem indesequipaveis
     - Feito mudanças de estrutura no código
     - Pontos não gastos agora são acumulaveis
+
+V 0.4.4
+    - Colocado para sinalizar quando há crítico na defesa ou no ataque
+        - !1 = inimigo/jogador deu crítico na defesa
+        - 1! = inimigo/jogador deu crítico no ataque
+        - Críticos tem chance base de 50%
