@@ -11,3 +11,10 @@ V 0.4.4
         - !1 = inimigo/jogador deu crítico na defesa
         - 1! = inimigo/jogador deu crítico no ataque
         - Críticos tem chance base de 50%
+
+V 0.4.5
+    - Feito pequena otimização
+    - Removido CPU
+    - Corrigido pequeno bug visual
+    - Adicionado icone na janela do jogo
+    - Críticos agora só ocorrem com uma chance quando o dado é mais próximo de 0
