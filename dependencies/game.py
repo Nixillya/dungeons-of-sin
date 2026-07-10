@@ -88,7 +88,7 @@ class MAP:
         self.monsters = numpy.array([MONSTER() for _ in range(1)])
         self.damagesView = numpy.array([DAMAGESVIEW() for _ in range(50)])
         self.spendAtt = False
-
+        self.extraPoints = 0
 class MENU:
     selection = 0
 
@@ -1670,7 +1670,10 @@ def play(game = GAME()):
         if(game.attSelection==-1):
             screen.fill("black")
             if(game.map.spendAtt):
-                game.map.player.attPoints+=1
+                game.map.extraPoints+=1
+                game.map.player.attPoints+=game.map.extraPoints
+            else:
+                game.map.extraPoints = 0
             create_map(game)
             game.details.darkAnimation = numpy.zeros((441))
             game.next = False

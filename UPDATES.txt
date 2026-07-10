@@ -1,0 +1,7 @@
+V 0.4.3
+    - Adicionado novos efeitos de tela
+    - Alterado algumas mécanicas especificas em armas
+    - Maldições agora tem 50% de aparecer em um item
+    - Removido efeito de maldições e apenas deixado para os equipamentos serem indesequipaveis
+    - Feito mudanças de estrutura no código
+    - Pontos não gastos agora são acumulaveis
