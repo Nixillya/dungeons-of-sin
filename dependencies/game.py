@@ -437,14 +437,15 @@ def move_monsters(game = GAME()):
                                     else:
                                         if(random.random()<game.map.player.inventory[0][1].breakChance/100):
                                             game.map.player.inventory[0][1].goBreak = True
-                                        game.map.player.inventory[0][1].breakChance+=1
+                                        game.map.player.inventory[0][1].breakChance+=random.randint(0,5)
                                         
                                 if(damage<game.map.player.attributes.hp):
                                     pygame.draw.circle(screen,"#8400FF",[game.map.player.camPos.x+random.randint(-1,1),game.map.player.camPos.y+random.randint(-1,1)],20)
                                     pygame.draw.line(screen,"#8400FF",[game.map.player.camPos.x+random.randint(-2,2),game.map.player.camPos.y+random.randint(-2,2)],[X+monster.camPos.x+random.randint(-2,2),Y+monster.camPos.y+random.randint(-2,2)],30)
                                     game.map.player.attributes.hp-=damage
-                                    objectView = random.randint(0,49)
-                                    game.map.damagesView[objectView].value = (0-damage)
+                                    game.map.damagesView.append(DAMAGESVIEW())
+                                    objectView = len(game.map.damagesView)-1
+                                    game.map.damagesView[objectView].value = str(damage-defense)
                                     game.map.damagesView[objectView].id = 1
                                     game.map.damagesView[objectView].pos.y = random.randint(250,750)
                                     game.map.damagesView[objectView].pos.x = random.randint(250,750)
