@@ -18,3 +18,7 @@ V 0.4.5
     - Corrigido pequeno bug visual
     - Adicionado icone na janela do jogo
     - Críticos agora só ocorrem com uma chance quando o dado é mais próximo de 0
+
+V 0.4.6
+    - Corrigido crash com inimigo
+    - Agora é necessarío pegar multiplas chaves para passar de level
