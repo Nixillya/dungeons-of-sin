@@ -48,7 +48,7 @@ class PLAYER:
         self.alive = True
         self.inventoryOpened = False
         self.fallen = False
-        self.key = True
+        self.key = 0
         self.firstAtt = True
         self.inventory = numpy.array([[ITEM() for _ in range(3)] for _ in range(4)])
         self.pos = POS()
@@ -83,7 +83,7 @@ class MAP:
         self.dark = numpy.zeros((1000,1000))
         self.floor = 0
         self.player = PLAYER()
-        self.key = POS()
+        self.key = []
         self.items = numpy.array([POS() for _ in range(1)])
         self.potionsColor = [(random.randint(0,255),random.randint(0,255),random.randint(0,255)) for _ in range(5)]
         self.monsters = numpy.array([MONSTER() for _ in range(1)])
@@ -364,17 +364,21 @@ def move_monsters(game = GAME()):
         if(monster.attributes.hp<1):
             if(monster.alive):
                 if(monster.key):
-                    game.map.key.y = monster.pos.y
-                    game.map.key.x = monster.pos.x
+                    for key in game.map.key:
+                        if(key.y==-1 and key.x==-1):
+                            game.map.key.y = monster.pos.y
+                            game.map.key.x = monster.pos.x
+                            break
                 monster.pos.y = -1
                 monster.pos.x = -1
                 game.map.player.exp+=random.randint(1,game.map.floor*game.map.player.attributes.intelligence)
                 monster.alive = False
         if(monster.alive):
-            if(monster.pos.y==game.map.key.y and monster.pos.x==game.map.key.x):
-                game.map.key.y = -1
-                game.map.key.x = -1
-                monster.key = True
+            for key in game.map.key:
+                if(monster.pos.y==key.y and monster.pos.x==key.x):
+                    key.y = -1
+                    key.x = -1
+                    monster.key = True
             if(time.perf_counter()-monster.clockSpeed>1/monster.attributes.dexterity):
                 monster.clockSpeed = time.perf_counter()
                 if(random.random()<0.5 and monster.id==5):
@@ -445,7 +449,7 @@ def move_monsters(game = GAME()):
                                     game.map.player.attributes.hp-=damage
                                     game.map.damagesView.append(DAMAGESVIEW())
                                     objectView = len(game.map.damagesView)-1
-                                    game.map.damagesView[objectView].value = str(damage-defense)
+                                    game.map.damagesView[objectView].value = str(damage)
                                     game.map.damagesView[objectView].id = 1
                                     game.map.damagesView[objectView].pos.y = random.randint(250,750)
                                     game.map.damagesView[objectView].pos.x = random.randint(250,750)
@@ -702,11 +706,13 @@ def render_interface(game = GAME()):
         expBar = (game.map.player.exp/game.map.player.nextExp)*200
         pygame.draw.rect(screen,"#464935",(790,35,200,20))
         pygame.draw.rect(screen,"#e0fe00",(790,35,expBar,20))
-        if(game.map.player.key):
-            X = 950
-            Y = 55
-            pygame.draw.lines(screen,"#fbff00",False,[[X+25,Y+20],[X+20,Y+25],[X+25,Y+30],[X+30,Y+25],[X+25,Y+20]],4)
-            pygame.draw.lines(screen,"#fbff00",False,[[X+25,Y+20],[X+25,Y+10]],3)
+
+        X = 850
+        Y = 55
+        key_text = game.details.font20.render(f'{game.map.player.key} / {game.map.floor}',True,"#FFFFFF")
+        screen.blit(key_text, (X+45,Y+5))
+        pygame.draw.lines(screen,"#fbff00",False,[[X+25,Y+20],[X+20,Y+25],[X+25,Y+30],[X+30,Y+25],[X+25,Y+20]],4)
+        pygame.draw.lines(screen,"#fbff00",False,[[X+25,Y+20],[X+25,Y+10]],3)
 
         if(game.map.player.attributes.hp>game.map.player.attributes.hpMax):
             game.map.player.attributes.hp = game.map.player.attributes.hpMax
@@ -906,7 +912,7 @@ def move_player(game = GAME()):
             if(input.enter):
                 clock = True
                 if(not game.map.player.inventoryOpened):
-                    if(game.map.player.key):
+                    if(game.map.player.key==game.map.floor):
                         if(game.map.tiles[game.map.player.pos.y][game.map.player.pos.x]==2):
                             game.details.darking = True
                             game.details.undarking = False
@@ -1156,10 +1162,11 @@ def move_player(game = GAME()):
             if(game.map.tiles[game.map.player.pos.y][game.map.player.pos.x]==4):
                 game.map.player.attributes.hp-=random.randint(1,game.map.floor)
                 game.map.tiles[game.map.player.pos.y][game.map.player.pos.x] = 1
-            if(game.map.player.pos.y == game.map.key.y and game.map.player.pos.x == game.map.key.x):
-                game.map.player.key = True
-                game.map.key.y = -1
-                game.map.key.x = -1
+            for key in game.map.key:
+                if(game.map.player.pos.y == key.y and game.map.player.pos.x == key.x):
+                    game.map.player.key += 1
+                    key.y = -1
+                    key.x = -1
 #----------------------------------------------------------------------------------------------------------------------------------------
 def simulate_vision(game = GAME(),y=0,x=0,i=0):
     if(i>=1):
@@ -1206,7 +1213,7 @@ def render_map(game = GAME()):
             if(game.map.tiles[game.map.player.pos.y+y][game.map.player.pos.x+x]==1):
                 pygame.draw.rect(screen,"#a2a2a2",(X,Y,50,50))
             if(game.map.tiles[game.map.player.pos.y+y][game.map.player.pos.x+x]==2):
-                if(game.map.player.key):
+                if(game.map.player.key==game.map.floor):
                     pygame.draw.rect(screen,"#ffffff",(X,Y,50,50))
                 else:
                     pygame.draw.rect(screen,"#000000",(X,Y,50,50))
@@ -1219,9 +1226,10 @@ def render_map(game = GAME()):
                 pygame.draw.circle(screen,"#999999",[X+37.5,Y+12.5],12)
                 pygame.draw.circle(screen,"#999999",[X+37.5,Y+37.5],12)
                 pygame.draw.circle(screen,"#999999",[X+12.5,Y+37.5],12)
-            if(game.map.key.y==game.map.player.pos.y+y and game.map.key.x==game.map.player.pos.x+x):
-                pygame.draw.lines(screen,"#fbff00",False,[[X+25,Y+20],[X+20,Y+25],[X+25,Y+30],[X+30,Y+25],[X+25,Y+20]],4)
-                pygame.draw.lines(screen,"#fbff00",False,[[X+25,Y+20],[X+25,Y+10]],3)
+            for key in game.map.key:
+                if(key.y==game.map.player.pos.y+y and key.x==game.map.player.pos.x+x):
+                    pygame.draw.lines(screen,"#fbff00",False,[[X+25,Y+20],[X+20,Y+25],[X+25,Y+30],[X+30,Y+25],[X+25,Y+20]],4)
+                    pygame.draw.lines(screen,"#fbff00",False,[[X+25,Y+20],[X+25,Y+10]],3)
             for item in game.map.items:
                 if(item.y==game.map.player.pos.y+y and item.x==game.map.player.pos.x+x):
                     pygame.draw.rect(screen, "#A66A2C", (X+8, Y+10, 34, 10))
@@ -1364,7 +1372,7 @@ def put_attributes(game = GAME()):
             game.attSelection = -1
 #----------------------------------------------------------------------------------------------------------------------------------------
 def create_map(game = GAME()):
-    game.map.player.key = False
+    game.map.player.key = 0
     mapY = 500
     mapX = 500
     i = 0
@@ -1416,10 +1424,8 @@ def create_map(game = GAME()):
             if(game.map.tiles[y,x]==1):
                 game.map.tiles[y,x] = 3
                 break
-    while(True):
-        if(random.random()<0.5):
-            break
-        while(True):
+    for it in range(game.map.floor):
+        for trys in range(10000):
             y = random.randint(0,999)
             x = random.randint(0,999)
             if(game.map.tiles[y,x]==1):
@@ -1444,8 +1450,9 @@ def create_map(game = GAME()):
             monster.camPos.y = (monster.pos.y*50-game.map.player.pos.y*50)
             monster.camPos.x = (monster.pos.x*50-game.map.player.pos.x*50)
             fail = False
-            for y1 in range(random.randint(1,10)):
-                for x1 in range(random.randint(1,10)):
+            block = random.randint(1,10)
+            for y1 in range(block):
+                for x1 in range(block):
                     if(game.map.player.pos.y==monster.pos.y+y1 and game.map.player.pos.x==monster.pos.x+x1):
                         fail = True
                         break
@@ -1505,18 +1512,15 @@ def create_map(game = GAME()):
                     if(monster.id==5):
                         monster.attributes.hpMax = game.map.floor*2
                         monster.attributes.defense = 0
-                    if(random.random()<0.01):
-                        monster.key = True
-                        key = True
                     monster.attributes.hp = monster.attributes.hpMax
                     monster.alive = True
                     break
-    if(not key):
+    game.map.key = numpy.array([POS() for _ in range(game.map.floor)])
+    for key in game.map.key:
         while(True):
-            game.map.key.y = random.randint(0,999)
-            game.map.key.x = random.randint(0,999)
-            if(game.map.tiles[game.map.key.y,game.map.key.x]==1):
-                key = True
+            key.y = random.randint(0,999)
+            key.x = random.randint(0,999)
+            if(game.map.tiles[key.y,key.x]==1):
                 break
     itensQ = game.map.floor
     if(itensQ>9):
@@ -1588,9 +1592,9 @@ def menu(game = GAME()):
 #----------------------------------------------------------------------------------------------------------------------------------------
 def play(game = GAME()):
     if(game.next):
-        if(game.map.player.key):
+        if(game.map.player.key==game.map.floor):
             game.map.floor+=1
-            game.map.player.key = False
+            game.map.player.key = 0
             game.attSelection = random.randint(0,4)
             game.map.spendAtt = True
             game.details.undarking = True
