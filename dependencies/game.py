@@ -5,7 +5,7 @@ import time
 
 pygame.init()
 screen = pygame.display.set_mode((1000, 1000))
-pygame.display.set_icon(pygame.image.load("dependencies/icon.png"))
+pygame.display.set_icon(pygame.image.load("dependencies/icon.ico"))
 pygame.display.set_caption("DUNGEONS OF SIN")
 clock = pygame.time.Clock()
 running = True
