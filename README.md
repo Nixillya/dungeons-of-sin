@@ -3,7 +3,7 @@
 - ⚠️ WORK IN PROGRESS
 
 um jogo simples de dungeon infinitita feito para um trabalho da faculdade univali,
-o jogo atualmente possui 13 itens, 6 monstros e varias mecanicas diferentes.
+o jogo atualmente possui 13 itens, 7 monstros e varias mecanicas diferentes.
 
 # LORE
     O jogador se encontra em um desafio entre a vida e a morte e 
