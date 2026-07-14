@@ -366,8 +366,8 @@ def move_monsters(game = GAME()):
                 if(monster.key):
                     for key in game.map.key:
                         if(key.y==-1 and key.x==-1):
-                            game.map.key.y = monster.pos.y
-                            game.map.key.x = monster.pos.x
+                            key.y = monster.pos.y
+                            key.x = monster.pos.x
                             break
                 monster.pos.y = -1
                 monster.pos.x = -1
