@@ -354,6 +354,19 @@ def move_monsters(game = GAME()):
                         (monster.pos.x - 1 == game.map.player.pos.x and monster.pos.y == game.map.player.pos.y)
                     ):
                         monster.hide = False
+            if(monster.id==6):
+                if(not monster.hide):
+                    pygame.draw.circle(screen,"#FF0000",[X+monster.camPos.x+random.randint(-2,2),Y+monster.camPos.y+random.randint(-2,2)],21)
+                    pygame.draw.circle(screen,"#000000",[X+monster.camPos.x+random.randint(-2,2),Y+monster.camPos.y+random.randint(-2,2)],20)
+                    pygame.draw.circle(screen,"#000000",[X+monster.camPos.x+random.randint(10,40)-25,Y+monster.camPos.y+random.randint(10,40)-25],random.randint(1,10))
+                else:
+                    if(
+                        (monster.pos.y + 1 == game.map.player.pos.y and monster.pos.x == game.map.player.pos.x) or
+                        (monster.pos.y - 1 == game.map.player.pos.y and monster.pos.x == game.map.player.pos.x) or
+                        (monster.pos.x + 1 == game.map.player.pos.x and monster.pos.y == game.map.player.pos.y) or
+                        (monster.pos.x - 1 == game.map.player.pos.x and monster.pos.y == game.map.player.pos.y)
+                    ):
+                        monster.hide = False
             if(monster.attacked):
                 monster.attacked = False
                 pygame.draw.circle(screen,"#FF0000",[X+monster.camPos.x+random.randint(-2,2),Y+monster.camPos.y+random.randint(-2,2)],20)
@@ -374,11 +387,12 @@ def move_monsters(game = GAME()):
                 game.map.player.exp+=random.randint(1,game.map.floor*game.map.player.attributes.intelligence)
                 monster.alive = False
         if(monster.alive):
-            for key in game.map.key:
-                if(monster.pos.y==key.y and monster.pos.x==key.x):
-                    key.y = -1
-                    key.x = -1
-                    monster.key = True
+            if(monster.id!=6):
+                for key in game.map.key:
+                    if(monster.pos.y==key.y and monster.pos.x==key.x):
+                        key.y = -1
+                        key.x = -1
+                        monster.key = True
             if(time.perf_counter()-monster.clockSpeed>1/monster.attributes.dexterity):
                 monster.clockSpeed = time.perf_counter()
                 if(random.random()<0.5 and monster.id==5):
@@ -513,6 +527,8 @@ def move_monsters(game = GAME()):
                         critDM = random.choice([True,False])
                         critDF = random.choice([True,False])
                         damage = random.randint(1,monster.attributes.strength)
+                        if(monster.id==6):
+                            damage = 0
                         if(critDM):
                             damage+=monster.attributes.intelligence
                         defense = int(game.map.player.attributes.defense*(game.map.player.dice/100))
@@ -646,9 +662,10 @@ def render_dark(game = GAME()):
             X = x*50+500
             if(game.map.memory[game.map.player.pos.y+y][game.map.player.pos.x+x]==0):
                 if(random.random()<0.5):
-                    game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]+=1
-                else:
-                    game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]-=1
+                    if(random.random()<0.5):
+                        game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]+=1
+                    else:
+                        game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]-=1
                 if(game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]>55):
                     game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]-=1
                 if(game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]<35):
@@ -1058,6 +1075,10 @@ def move_player(game = GAME()):
                         critDM = int(game.map.player.attributes.strength*((100-game.map.player.dice)/100))
                         critDF = int(monster.attributes.defense*((100-monster.dice)/100))
                         damage = int(game.map.player.attributes.strength*(game.map.player.dice/100))
+                        if(monster.id==6):
+                            damage = 0
+                            monster.attributes.hp = 0
+                            game.map.player.attributes.hp = 1
                         if(critDM):
                             damage+=game.map.player.attributes.intelligence
                         defense = int(monster.attributes.defense*(monster.dice/100))
@@ -1165,8 +1186,8 @@ def move_player(game = GAME()):
             for key in game.map.key:
                 if(game.map.player.pos.y == key.y and game.map.player.pos.x == key.x):
                     game.map.player.key += 1
-                    key.y = -1
-                    key.x = -1
+                    key.y = -2
+                    key.x = -2
 #----------------------------------------------------------------------------------------------------------------------------------------
 def simulate_vision(game = GAME(),y=0,x=0,i=0):
     if(i>=1):
@@ -1204,14 +1225,14 @@ def render_map(game = GAME()):
     if(game.map.player.attributes.hp<0):
         game.map.player.attributes.hp = 0
     simulate_vision(game,random.randint(-1,1),random.randint(-1,1))
+    screen.fill("#a2a2a2")
     for y in range(-10,10,1):
         for x in range(-10,10,1):
             Y = y*50+500
             X = x*50+500
             if(game.map.tiles[game.map.player.pos.y+y][game.map.player.pos.x+x]==0):
                 pygame.draw.rect(screen,"#545454",(X,Y,50,50))
-            if(game.map.tiles[game.map.player.pos.y+y][game.map.player.pos.x+x]==1):
-                pygame.draw.rect(screen,"#a2a2a2",(X,Y,50,50))
+                continue
             if(game.map.tiles[game.map.player.pos.y+y][game.map.player.pos.x+x]==2):
                 if(game.map.player.key==game.map.floor):
                     pygame.draw.rect(screen,"#ffffff",(X,Y,50,50))
@@ -1220,25 +1241,27 @@ def render_map(game = GAME()):
                 pygame.draw.rect(screen,"#363636",(X+5+random.randint(-1,1),Y+5+random.randint(-1,1),40,40))
             if(game.map.tiles[game.map.player.pos.y+y][game.map.player.pos.x+x]==3):
                 pygame.draw.rect(screen,"#545454",(X,Y,50,50))
+                continue
             if(game.map.tiles[game.map.player.pos.y+y][game.map.player.pos.x+x]==4):
                 pygame.draw.rect(screen,"#a2a2a2",(X,Y,50,50))
                 pygame.draw.circle(screen,"#999999",[X+12.5,Y+12.5],12)
                 pygame.draw.circle(screen,"#999999",[X+37.5,Y+12.5],12)
                 pygame.draw.circle(screen,"#999999",[X+37.5,Y+37.5],12)
                 pygame.draw.circle(screen,"#999999",[X+12.5,Y+37.5],12)
-            for key in game.map.key:
-                if(key.y==game.map.player.pos.y+y and key.x==game.map.player.pos.x+x):
-                    pygame.draw.lines(screen,"#fbff00",False,[[X+25,Y+20],[X+20,Y+25],[X+25,Y+30],[X+30,Y+25],[X+25,Y+20]],4)
-                    pygame.draw.lines(screen,"#fbff00",False,[[X+25,Y+20],[X+25,Y+10]],3)
-            for item in game.map.items:
-                if(item.y==game.map.player.pos.y+y and item.x==game.map.player.pos.x+x):
-                    pygame.draw.rect(screen, "#A66A2C", (X+8, Y+10, 34, 10))
-                    pygame.draw.rect(screen, "#8B4513", (X+8, Y+20, 34, 18))
-                    pygame.draw.rect(screen, "#808080", (X+14, Y+10, 4, 28))
-                    pygame.draw.rect(screen, "#808080", (X+32, Y+10, 4, 28))
-                    pygame.draw.rect(screen, "#FFD700", (X+22, Y+22, 6, 8))
-                    pygame.draw.rect(screen, "#5A2E0C", (X+10, Y+38, 6, 4))
-                    pygame.draw.rect(screen, "#5A2E0C", (X+34, Y+38, 6, 4))
+            if(game.map.tiles[game.map.player.pos.y+y][game.map.player.pos.x+x]==1):
+                for key in game.map.key:
+                    if(key.y==game.map.player.pos.y+y and key.x==game.map.player.pos.x+x):
+                        pygame.draw.lines(screen,"#fbff00",False,[[X+25,Y+20],[X+20,Y+25],[X+25,Y+30],[X+30,Y+25],[X+25,Y+20]],4)
+                        pygame.draw.lines(screen,"#fbff00",False,[[X+25,Y+20],[X+25,Y+10]],3)
+                for item in game.map.items:
+                    if(item.y==game.map.player.pos.y+y and item.x==game.map.player.pos.x+x):
+                        pygame.draw.rect(screen, "#A66A2C", (X+8, Y+10, 34, 10))
+                        pygame.draw.rect(screen, "#8B4513", (X+8, Y+20, 34, 18))
+                        pygame.draw.rect(screen, "#808080", (X+14, Y+10, 4, 28))
+                        pygame.draw.rect(screen, "#808080", (X+32, Y+10, 4, 28))
+                        pygame.draw.rect(screen, "#FFD700", (X+22, Y+22, 6, 8))
+                        pygame.draw.rect(screen, "#5A2E0C", (X+10, Y+38, 6, 4))
+                        pygame.draw.rect(screen, "#5A2E0C", (X+34, Y+38, 6, 4))
 
     if(game.map.player.attributes.hp<1):
         pygame.draw.lines(screen,"#5e5e5e",False,[[game.map.player.camPos.x-20,game.map.player.camPos.y+15],[game.map.player.camPos.x+20,game.map.player.camPos.y+15]],10)
@@ -1417,6 +1440,34 @@ def create_map(game = GAME()):
                 game.map.tiles[mapY,mapX] = 2
                 break
         i+=1
+    game.map.key = numpy.array([POS() for _ in range(game.map.floor)])
+    for key in game.map.key:
+        while(True):
+            key.y = random.randint(0,999)
+            key.x = random.randint(0,999)
+            if(game.map.tiles[key.y,key.x]==1):
+                break
+    itensQ = game.map.floor
+    if(itensQ>9):
+        itensQ = 9
+    game.map.items = numpy.array([POS() for _ in range(itensQ)])
+    for item in game.map.items:
+        item.y = -1
+        item.x = -1
+    for item in game.map.items:
+        for i in range(1000000):
+            success = True
+            item.y = random.randint(0,999)
+            item.x = random.randint(0,999)
+            for otherItem in game.map.items:
+                if(item==otherItem):
+                    continue
+                if(item.y==otherItem.y and item.x==otherItem.x):
+                    success = False
+                    break
+            if(success):
+                if(game.map.tiles[item.y,item.x]==1):
+                    break
     for it in range(game.map.floor):
         for i in range(10000):
             y = random.randint(0,999)
@@ -1442,7 +1493,6 @@ def create_map(game = GAME()):
     for monster in game.map.monsters:
         monster.pos.y = -1
         monster.pos.x = -1
-    key = False
     for monster in game.map.monsters:
         for i in range(1000000):
             monster.pos.y = random.randint(0,999)
@@ -1459,8 +1509,8 @@ def create_map(game = GAME()):
             if(fail):
                 continue
             id = random.randint(0,game.map.floor-1)
-            if(id>5):
-                id = random.randint(0,5)
+            if(id>6):
+                id = random.randint(0,6)
             monster.id = id
             valueAtt = 10
             monster.attributes.hpMax = 1
@@ -1512,36 +1562,11 @@ def create_map(game = GAME()):
                     if(monster.id==5):
                         monster.attributes.hpMax = game.map.floor*2
                         monster.attributes.defense = 0
+                    if(monster.id==6):
+                        monster.attributes.hpMax = 1
+                        monster.attributes.defense = 0
                     monster.attributes.hp = monster.attributes.hpMax
                     monster.alive = True
-                    break
-    game.map.key = numpy.array([POS() for _ in range(game.map.floor)])
-    for key in game.map.key:
-        while(True):
-            key.y = random.randint(0,999)
-            key.x = random.randint(0,999)
-            if(game.map.tiles[key.y,key.x]==1):
-                break
-    itensQ = game.map.floor
-    if(itensQ>9):
-        itensQ = 9
-    game.map.items = numpy.array([POS() for _ in range(itensQ)])
-    for item in game.map.items:
-        item.y = -1
-        item.x = -1
-    for item in game.map.items:
-        for i in range(1000000):
-            success = True
-            item.y = random.randint(0,999)
-            item.x = random.randint(0,999)
-            for otherItem in game.map.items:
-                if(item==otherItem):
-                    continue
-                if(item.y==otherItem.y and item.x==otherItem.x):
-                    success = False
-                    break
-            if(success):
-                if(game.map.tiles[item.y,item.x]==1):
                     break
 #----------------------------------------------------------------------------------------------------------------------------------------
 def menu(game = GAME()):
@@ -1568,7 +1593,7 @@ def menu(game = GAME()):
         exit_text = game.details.font50.render('  EXIT', True, "#FFFFFF")
         screen.blit(exit_text, ((500-exit_text.get_size()[0]/2),(550-exit_text.get_size()[1]/2)))
     
-    version_text = game.details.font50.render('V 0.4.6', True, "#505050")
+    version_text = game.details.font50.render('V 0.4.7', True, "#505050")
     screen.blit(version_text, ((900-version_text.get_size()[0]/2),(900-version_text.get_size()[1]/2)))
 
     if(time.perf_counter()-game.clockMove>0.2 and not game.details.darking and not game.details.undarking):

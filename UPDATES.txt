@@ -22,3 +22,10 @@ V 0.4.5
 V 0.4.6
     - Corrigido crash com inimigo
     - Agora é necessarío pegar multiplas chaves para passar de level
+
+V 0.4.7
+    - Corrigido crash ao matar inimigo com chave
+    - Adicionado novo monstro com habilidades especiais
+    - Chaves e baus agora podem nascer embaixo de pedras falsas e armadilhas
+    - Pequena otimização na renderezação do mapa
+    - Colocado menos tremor na escuridão
