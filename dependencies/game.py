@@ -3,13 +3,14 @@ import numpy
 import random
 import time
 
+#----------------------------------------------------------------------------------------------------------------------------------------
 pygame.init()
 screen = pygame.display.set_mode((1000, 1000))
 pygame.display.set_icon(pygame.image.load("dependencies/icon.ico"))
 pygame.display.set_caption("DUNGEONS OF SIN")
 clock = pygame.time.Clock()
 running = True
-
+#----------------------------------------------------------------------------------------------------------------------------------------
 class POS:
     def __init__(self):
         self.x = -1
@@ -23,6 +24,11 @@ class ATTRIBUTES:
         self.dexterity = 1
         self.intelligence = 1
         self.color = [[255,255,255],[255,255,255],[255,255,255],[255,255,255],[255,255,255]]
+class STATUS:
+    def __init__(self):
+        self.freeze = False
+        self.confusion = True
+        self.suspect = False
 class ITEM:
     def __init__(self):
         self.id = 0
@@ -58,6 +64,7 @@ class PLAYER:
         self.inventorySelection.y = 0
         self.attributes = ATTRIBUTES()
         self.dice = random.randint(1,100)
+        self.status = STATUS()
 class MONSTER:
     def __init__(self):
         self.id = 0
@@ -92,7 +99,6 @@ class MAP:
         self.extraPoints = 0
 class MENU:
     selection = 0
-
 class DETAILS:
     darking = False
     undarking = False
@@ -101,7 +107,6 @@ class DETAILS:
     font20 = pygame.font.SysFont('arialblack', 20)
     font50 = pygame.font.SysFont('arialblack', 50)
     font80 = pygame.font.SysFont('arialblack', 80)
-
 class GAME:
     clockMove = time.perf_counter()
     attSelection = 0
@@ -110,7 +115,6 @@ class GAME:
     play = False
     next = True
     details = DETAILS()
-
 class INPUT:
     w = False
     a = False
@@ -120,7 +124,6 @@ class INPUT:
     i = False
     enter = False
     esc = False
-
 #----------------------------------------------------------------------------------------------------------------------------------------
 def play_sound(sound,volume=1):
     pygame.mixer_music.load(sound)
@@ -395,7 +398,7 @@ def move_monsters(game = GAME()):
                         monster.key = True
             if(time.perf_counter()-monster.clockSpeed>1/monster.attributes.dexterity):
                 monster.clockSpeed = time.perf_counter()
-                if(random.random()<0.5 and monster.id==5):
+                if(random.random()<0.5 and (monster.id==5 or monster.id==6)):
                     monster.hide = True
                 target = POS()
                 target.y = 0
@@ -613,6 +616,17 @@ def move_monsters(game = GAME()):
                                 if(debuff==4):
                                     game.map.player.attributes.dexterity-=0.1
                                 game.map.player.attributes.color[debuff] = [255,0,0]
+                        effectChance = game.map.floor
+                        if(effectChance>50):
+                            effectChance = 50
+                        if(random.random()<effectChance/100):
+                            effect = random.randint(1,3)
+                            if(effect==1):
+                                game.map.player.status.freeze = True
+                            if(effect==2):
+                                game.map.player.status.confusion = True
+                            if(effect==3):
+                                game.map.player.status.suspect = True
                         game.map.damagesView.append(DAMAGESVIEW())
                         objectView = len(game.map.damagesView)-1
                         game.map.damagesView[objectView].value = str(damage-defense)
@@ -671,7 +685,11 @@ def render_dark(game = GAME()):
                 if(game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]<35):
                     game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]+=1
                 size = game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]
-                pygame.draw.circle(screen,"#000000",[X+25,Y+25],size)
+                if(game.map.player.status.confusion):
+                    color = (random.randint(0,255),random.randint(0,255),random.randint(0,255))
+                    pygame.draw.circle(screen,color,[X+25,Y+25],size)
+                else:
+                    pygame.draw.circle(screen,"#000000",[X+25,Y+25],size)
                 if(game.map.player.attributes.hpMax<1):
                     game.map.player.attributes.hpMax = 1
                     game.map.player.attributes.hp = 1
@@ -880,16 +898,37 @@ def move_player(game = GAME()):
                     game.map.player.attributes.hp+=game.map.floor
                 game.map.player.nextExp+=random.randint(1,game.map.floor*2)
 
-            input = INPUT()  
-            key = pygame.key.get_pressed()
-            input.w = key[pygame.K_w]
-            input.a = key[pygame.K_a]
-            input.s = key[pygame.K_s]
-            input.d = key[pygame.K_d]
-            input.q = key[pygame.K_q]
-            input.i = key[pygame.K_i]
-            input.enter = key[pygame.K_RETURN]
-            input.esc = key[pygame.K_ESCAPE]
+            if(game.map.player.status.confusion):
+                input = INPUT()
+                key = [False,False,False,False,False,False,False]
+                key[random.randint(0,6)] = True
+                input.w = key[0]
+                input.a = key[1]
+                input.s = key[2]
+                input.d = key[3]
+                input.q = key[4]
+                input.i = key[5]
+                input.enter = key[6]
+                if(random.random()<0.25):
+                    game.map.player.status.confusion = False
+            else:
+                input = INPUT()
+                key = pygame.key.get_pressed()
+                input.w = key[pygame.K_w]
+                input.a = key[pygame.K_a]
+                input.s = key[pygame.K_s]
+                input.d = key[pygame.K_d]
+                input.q = key[pygame.K_q]
+                input.i = key[pygame.K_i]
+                input.enter = key[pygame.K_RETURN]
+            if(game.map.player.status.freeze):
+                input = INPUT()
+                if(random.random()<0.25):
+                    game.map.player.status.freeze = False
+
+            if(game.map.player.status.suspect):
+                if(random.random()<0.01):
+                    game.map.player.status.suspect = True
 
             if(input.w):
                 clock = True
@@ -1367,11 +1406,11 @@ def put_attributes(game = GAME()):
                     game.map.player.valueAtt-=1
                 if(game.attSelection==1):
                     game.map.player.attPoints-=1
-                    game.map.player.attributes.defense+=game.map.player.valueAtt
+                    game.map.player.attributes.defense+=1
                     game.map.player.valueAtt-=1
                 if(game.attSelection==2):
                     game.map.player.attPoints-=1
-                    game.map.player.attributes.strength+=game.map.player.valueAtt
+                    game.map.player.attributes.strength+=1
                     game.map.player.valueAtt-=1
                 if(game.attSelection==3):
                     if(game.map.player.attPoints>=game.map.player.attributes.intelligence):
@@ -1537,11 +1576,11 @@ def create_map(game = GAME()):
                             valueAtt-=1
                         if(attribute==1):
                             attPoints-=1
-                            monster.attributes.defense+=valueAtt
+                            monster.attributes.defense+=1
                             valueAtt-=1
                         if(attribute==2):
                             attPoints-=1
-                            monster.attributes.strength+=valueAtt
+                            monster.attributes.strength+=1
                             valueAtt-=1
                         if(attribute==3):
                             if(attPoints>=monster.attributes.intelligence):
@@ -1647,8 +1686,7 @@ def play(game = GAME()):
         if(game.details.darking):
             if(transition_screen(game)):
                 game.next = True
-  #----------------------------------------------------------------------------------------------------------------------------------------
-
+#----------------------------------------------------------------------------------------------------------------------------------------
 game = GAME()
 while(running):
     for event in pygame.event.get():
@@ -1666,3 +1704,4 @@ while(running):
     pygame.display.flip()
     clock.tick(60)
 pygame.quit()
+#----------------------------------------------------------------------------------------------------------------------------------------
