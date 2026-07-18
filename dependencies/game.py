@@ -685,11 +685,7 @@ def render_dark(game = GAME()):
                 if(game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]<35):
                     game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]+=1
                 size = game.map.dark[game.map.player.pos.y+y][game.map.player.pos.x+x]
-                if(game.map.player.status.confusion):
-                    color = (random.randint(0,255),random.randint(0,255),random.randint(0,255))
-                    pygame.draw.circle(screen,color,[X+25,Y+25],size)
-                else:
-                    pygame.draw.circle(screen,"#000000",[X+25,Y+25],size)
+                pygame.draw.circle(screen,"#000000",[X+25,Y+25],size)
                 if(game.map.player.attributes.hpMax<1):
                     game.map.player.attributes.hpMax = 1
                     game.map.player.attributes.hp = 1
@@ -909,7 +905,7 @@ def move_player(game = GAME()):
                 input.q = key[4]
                 input.i = key[5]
                 input.enter = key[6]
-                if(random.random()<0.25):
+                if(random.random()<0.2):
                     game.map.player.status.confusion = False
             else:
                 input = INPUT()
@@ -923,7 +919,7 @@ def move_player(game = GAME()):
                 input.enter = key[pygame.K_RETURN]
             if(game.map.player.status.freeze):
                 input = INPUT()
-                if(random.random()<0.25):
+                if(random.random()<0.05):
                     game.map.player.status.freeze = False
 
             if(game.map.player.status.suspect):
