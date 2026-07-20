@@ -422,20 +422,20 @@ def move_monsters(game = GAME()):
                                 if(random.random()<0.5):
                                     if(monster.pos.y-game.map.player.pos.y>0):
                                         direction = 0
-                                        if(monster.id==2):
+                                        if(game.map.player.dice>monster.dice or monster.id==2):
                                             direction = 1
                                     else:
                                         direction = 1
-                                        if(monster.id==2):
+                                        if(game.map.player.dice>monster.dice or monster.id==2):
                                             direction = 0
                                 else:
                                     if(monster.pos.x-game.map.player.pos.x>0):
                                         direction = 2
-                                        if(monster.id==2):
+                                        if(game.map.player.dice>monster.dice or monster.id==2):
                                             direction = 3
                                     else:
                                         direction = 3
-                                        if(monster.id==2):
+                                        if(game.map.player.dice>monster.dice or monster.id==2):
                                             direction = 2
                     if(monster.id==2):
                         if(random.random()<0.9):
@@ -1339,7 +1339,7 @@ def put_attributes(game = GAME()):
         if(game.attSelection==3):
             cost = game.map.player.attributes.intelligence
         if(game.attSelection==4):
-            cost = int(game.map.player.attributes.dexterity)
+            cost = int((game.map.player.attributes.dexterity*10)-9)
         if(game.attSelection!=5):
             cost_text = game.details.font20.render(f'COST: {cost}', True, "#FF0000")
             screen.blit(cost_text, (500-cost_text.get_size()[0]/2+random.randint(-1,1),150-cost_text.get_size()[1]/2+random.randint(-1,1)))
@@ -1414,7 +1414,7 @@ def put_attributes(game = GAME()):
                         game.map.player.attributes.intelligence+=1
                         game.map.player.valueAtt-=1
                 if(game.attSelection==4):
-                    if(game.map.player.attPoints>=int(game.map.player.attributes.dexterity)):
+                    if(game.map.player.attPoints>=int((game.map.player.attributes.dexterity*10)-9)):
                         game.map.player.attPoints-=int(game.map.player.attributes.dexterity)
                         game.map.player.attributes.dexterity+=0.1
                         game.map.player.valueAtt-=1
@@ -1475,6 +1475,13 @@ def create_map(game = GAME()):
                 game.map.tiles[mapY,mapX] = 2
                 break
         i+=1
+    for it in range(game.map.floor):
+        for trys in range(10000):
+            y = random.randint(0,999)
+            x = random.randint(0,999)
+            if(game.map.tiles[y,x]==1):
+                game.map.tiles[y,x] = 4
+                break
     game.map.key = numpy.array([POS() for _ in range(game.map.floor)])
     for key in game.map.key:
         while(True):
@@ -1509,13 +1516,6 @@ def create_map(game = GAME()):
             x = random.randint(0,999)
             if(game.map.tiles[y,x]==1):
                 game.map.tiles[y,x] = 3
-                break
-    for it in range(game.map.floor):
-        for trys in range(10000):
-            y = random.randint(0,999)
-            x = random.randint(0,999)
-            if(game.map.tiles[y,x]==1):
-                game.map.tiles[y,x] = 4
                 break
     while(True):
         game.map.player.pos.y = random.randint(0,999)
@@ -1583,7 +1583,7 @@ def create_map(game = GAME()):
                                 attPoints-=monster.attributes.intelligence
                                 monster.attributes.intelligence+=1
                         if(attribute==4):
-                            if(attPoints>=int(monster.attributes.dexterity)):
+                            if(attPoints>=int((game.map.player.attributes.dexterity*10)-9)):
                                 attPoints-=int(monster.attributes.dexterity)
                                 monster.attributes.dexterity+=0.1
                     if(monster.id==1):
@@ -1628,7 +1628,7 @@ def menu(game = GAME()):
         exit_text = game.details.font50.render('  EXIT', True, "#FFFFFF")
         screen.blit(exit_text, ((500-exit_text.get_size()[0]/2),(550-exit_text.get_size()[1]/2)))
     
-    version_text = game.details.font50.render('V 0.4.7', True, "#505050")
+    version_text = game.details.font50.render('V 0.4.8', True, "#505050")
     screen.blit(version_text, ((900-version_text.get_size()[0]/2),(900-version_text.get_size()[1]/2)))
 
     if(time.perf_counter()-game.clockMove>0.2 and not game.details.darking and not game.details.undarking):

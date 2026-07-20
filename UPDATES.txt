@@ -26,6 +26,11 @@ V 0.4.6
 V 0.4.7
     - Corrigido crash ao matar inimigo com chave
     - Adicionado novo monstro com habilidades especiais
-    - Chaves e baus agora podem nascer embaixo de pedras falsas e armadilhas
+    - Chaves e baus agora podem nascer embaixo de pedras falsas e em armadilhas
     - Pequena otimização na renderezação do mapa
     - Colocado menos tremor na escuridão
+
+V 0.4.8
+    - Alguns efeitos em teste foram adicionados
+    - Os inimigos agora estão mais espertos
+    - Chaves e baus agora não nascem mais em armadilhas
